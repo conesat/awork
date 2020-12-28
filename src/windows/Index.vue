@@ -7,10 +7,9 @@
       <div class="bottom">
         <ATodo></ATodo>
       </div>
-
     </div>
     <div class="plan-right">
-
+      <APlane></APlane>
     </div>
   </div>
 </template>
@@ -46,10 +45,26 @@
     -moz-user-select: none;
     -o-user-select: none;
     user-select: none;
-    overflow: hidden;
+    min-height: 600px;
+    overflow-y: auto;
 
     .index {
+      display: flex;
+      box-sizing: border-box;
       height: 100%;
+      padding: 6px;
+
+      .plan-right {
+        background: #FFFFFF;
+        border-radius: 6px;
+        flex: 1;
+        height: 100%;
+        margin-left: 10px;
+      }
+
+      .plan-right:hover {
+        box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+      }
     }
 
     .menu-left {
@@ -65,7 +80,6 @@
       }
 
       .bottom {
-        margin-bottom: 20px;
         flex: 1;
         margin-top: 10px;
         overflow: hidden;

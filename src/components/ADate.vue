@@ -1,57 +1,69 @@
 <!-- 爱日历 -->
 <template>
   <div class="a-date">
-   <div class="date">
-     <div class="date-top">
-       <i class="fa fa-chevron-left" @click="beforMoth()"></i>
-       <span>
-         <span>{{pikerDateYear}}</span>
-         年
-         <span>{{pikerDateMoth}}</span>
-         月
-       </span>
-       <i class="fa fa-chevron-right" @click="nextMoth()"></i>
-     </div>
-     <div class="line"></div>
-     <div class="date-title">
-       <span>日</span>
-       <span>一</span>
-       <span>二</span>
-       <span>三</span>
-       <span>四</span>
-       <span>五</span>
-       <span>六</span>
-     </div>
-     <div class="date-day">
-       <div class="date-day-line" v-for="(item,indexDay) in day">
-         <span :class="{'now':item.type == 'now'}" v-for="(item,index) in date" v-if="index<7*(indexDay+1)&&index>=7*indexDay">
-           {{item.date}}
-           <div class="tag"></div>
-         </span>
-       </div>
-     </div>
-     <div class="bottm-title">
-       Alife - Awork
-     </div>
-   </div>
+    <div class="date">
+      <div class="date-top">
+        <i class="fa fa-chevron-left" @click="beforMoth()"></i>
+        <span>
+          <span>{{pikerDateYear}}</span>
+          年
+          <span>{{pikerDateMoth}}</span>
+          月
+        </span>
+        <i class="fa fa-chevron-right" @click="nextMoth()"></i>
+      </div>
+      <div class="line"></div>
+      <div class="date-title">
+        <span>日</span>
+        <span>一</span>
+        <span>二</span>
+        <span>三</span>
+        <span>四</span>
+        <span>五</span>
+        <span>六</span>
+      </div>
+      <div class="date-day">
+        <div :class="{'active-week':indexDay==chioceWeek}" class="date-day-line" v-for="(item,indexDay) in day" :index='indexDay'>
+          <span @click="choiceDateFun($event,index)" :class="{'now':item.type == 'now','active':item.year==chioceYear&&item.moth==chioceMoth&&item.date==chioceDate}"
+            v-for="(item,index) in date" v-if="index<7*(indexDay+1)&&index>=7*indexDay">
+            {{item.date}}
+            <div class="tag"></div>
+          </span>
+        </div>
+      </div>
+      <div class="bottm-title">
+        Alife - Awork
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
   export default {
-    name:'ADate',
+    name: 'ADate',
     data() {
       return {
         date: [],
         day: [], //周
         pickerDate: undefined, //日历
-        pikerDateYear: '2',
-        pikerDateMoth: '2',
+        pikerDateYear: '',
+        pikerDateMoth: '',
+
+
+        chioceYear: "", //选中年份
+        chioceMoth: "", //选中月份
+        chioceDate: "", //选中日期
+        chioceWeek: "", //选中周
       }
     },
     methods: {
-      add() {
-
+      choiceDateFun(e, index) {
+        var parent = e.currentTarget.parentElement;
+        var date = this.date[index];
+        this.chioceYear = date.year;
+        this.chioceMoth = date.moth;
+        this.chioceDate = date.date;
+        this.chioceWeek = parent.getAttribute("index")
       },
       beforMoth() {
         var currentDate = this.pickerDate;
@@ -68,8 +80,10 @@
         var nowDate = currentDate.getDate(); //得到日期
         this.pickerDate = new Date(nowYear, nowMonth, nowDate);
         this.initDate();
+
       },
       initDate() {
+        this.chioceWeek = -1;
         this.date.splice(0, this.date.length);
         var currentDate = this.pickerDate;
         var nowYear = currentDate.getFullYear(); //得到年份
@@ -87,11 +101,27 @@
         setDate.setDate(setDate.getDate() - 1);
         var date = setDate.getDate(); //得到日期
         //填充前日期
+        var beforMothValue;
+        var beforYearValue;
+        if (nowMonth == 0) {
+          beforMothValue = 11;
+          beforYearValue = nowYear - 1;
+        } else {
+          beforYearValue = nowYear
+          beforMothValue = nowMonth - 1;
+        }
+
         for (var x = day - 1; x >= 0; x--) {
           this.date.push({
             type: 'befor',
-            date: date - x
+            date: date - x,
+            year: beforYearValue,
+            moth: beforMothValue,
           });
+          if (beforYearValue == this.chioceYear && beforMothValue == this.chioceMoth && date - x == this.chioceDate) {
+            this.chioceWeek = Math.ceil(this.date.length / 7) - 1;
+            console.log(123)
+          }
         }
 
         //获取本月最后一天
@@ -99,14 +129,35 @@
         for (var x = 1; x <= monthEndDate.getDate(); x++) {
           this.date.push({
             type: 'now',
-            date: x
+            date: x,
+            year: nowYear,
+            moth: nowMonth,
           });
+          if (nowYear == this.chioceYear && nowMonth == this.chioceMoth && x == this.chioceDate) {
+            this.chioceWeek = Math.ceil(this.date.length / 7) - 1;
+          }
+        }
+
+
+        var nextMothValue;
+        var nextYearValue;
+        if (nowMonth == 11) {
+          nextMothValue = 0;
+          nextYearValue = nowYear + 1;
+        } else {
+          nextYearValue = nowYear;
+          nextMothValue = nowMonth + 1;
         }
         for (var x = 1; this.date.length < 42; x++) {
           this.date.push({
             type: 'after',
-            date: x
+            date: x,
+            year: nextYearValue,
+            moth: nextMothValue,
           });
+          if (nextYearValue == this.chioceYear && nextMothValue == this.chioceMoth && x == this.chioceDate) {
+            this.chioceWeek = Math.ceil(this.date.length / 7) - 1;
+          }
         }
       },
       //初始化周
@@ -121,6 +172,9 @@
     },
     mounted() {
       this.pickerDate = new Date();
+      this.chioceYear = this.pickerDate.getFullYear();
+      this.chioceMoth = this.pickerDate.getMonth();
+      this.chioceDate = this.pickerDate.getDate();
       this.initDate();
       this.initDay();
     }
@@ -198,7 +252,8 @@
       transition: all 0.3s linear;
     }
 
-    .date-day .date-day-line:hover {
+    .date-day .date-day-line:hover,
+    .date-day .active-week {
       background: rgba(0, 0, 0, 0.1);
       border-radius: 2rem;
     }
@@ -232,7 +287,8 @@
     transition: all 0.3s linear;
   }
 
-  .a-date .date .date-day .date-day-line span:hover {
+  .a-date .date .date-day .date-day-line span:hover,
+  .a-date .date .date-day .date-day-line .active {
     background: #6DC9FF;
     border-radius: 50%;
     color: #FFFFFF;
