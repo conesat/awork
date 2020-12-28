@@ -1,0 +1,240 @@
+<!-- 爱日历 -->
+<template>
+  <div class="a-date">
+   <div class="date">
+     <div class="date-top">
+       <i class="fa fa-chevron-left" @click="beforMoth()"></i>
+       <span>
+         <span>{{pikerDateYear}}</span>
+         年
+         <span>{{pikerDateMoth}}</span>
+         月
+       </span>
+       <i class="fa fa-chevron-right" @click="nextMoth()"></i>
+     </div>
+     <div class="line"></div>
+     <div class="date-title">
+       <span>日</span>
+       <span>一</span>
+       <span>二</span>
+       <span>三</span>
+       <span>四</span>
+       <span>五</span>
+       <span>六</span>
+     </div>
+     <div class="date-day">
+       <div class="date-day-line" v-for="(item,indexDay) in day">
+         <span :class="{'now':item.type == 'now'}" v-for="(item,index) in date" v-if="index<7*(indexDay+1)&&index>=7*indexDay">
+           {{item.date}}
+           <div class="tag"></div>
+         </span>
+       </div>
+     </div>
+     <div class="bottm-title">
+       Alife - Awork
+     </div>
+   </div>
+  </div>
+</template>
+
+<script>
+  export default {
+    name:'ADate',
+    data() {
+      return {
+        date: [],
+        day: [], //周
+        pickerDate: undefined, //日历
+        pikerDateYear: '2',
+        pikerDateMoth: '2',
+      }
+    },
+    methods: {
+      add() {
+
+      },
+      beforMoth() {
+        var currentDate = this.pickerDate;
+        var nowYear = currentDate.getFullYear(); //得到年份
+        var nowMonth = currentDate.getMonth() - 1; //得到月份
+        var nowDate = currentDate.getDate(); //得到日期
+        this.pickerDate = new Date(nowYear, nowMonth, nowDate);
+        this.initDate();
+      },
+      nextMoth() {
+        var currentDate = this.pickerDate;
+        var nowYear = currentDate.getFullYear(); //得到年份
+        var nowMonth = currentDate.getMonth() + 1; //得到月份
+        var nowDate = currentDate.getDate(); //得到日期
+        this.pickerDate = new Date(nowYear, nowMonth, nowDate);
+        this.initDate();
+      },
+      initDate() {
+        this.date.splice(0, this.date.length);
+        var currentDate = this.pickerDate;
+        var nowYear = currentDate.getFullYear(); //得到年份
+        var nowMonth = currentDate.getMonth(); //得到月份
+        var nowDate = currentDate.getDate(); //得到日期
+        this.pikerDateYear = nowYear;
+        this.pikerDateMoth = nowMonth + 1;
+
+        var hour = currentDate.getHours(); //得到小时
+        var minu = currentDate.getMinutes(); //得到分钟
+        var sec = currentDate.getSeconds(); //得到秒
+
+        var setDate = new Date(nowYear, nowMonth, 1);
+        var day = setDate.getDay(); //得到周几
+        setDate.setDate(setDate.getDate() - 1);
+        var date = setDate.getDate(); //得到日期
+        //填充前日期
+        for (var x = day - 1; x >= 0; x--) {
+          this.date.push({
+            type: 'befor',
+            date: date - x
+          });
+        }
+
+        //获取本月最后一天
+        var monthEndDate = new Date(nowYear, nowMonth + 1, 0);
+        for (var x = 1; x <= monthEndDate.getDate(); x++) {
+          this.date.push({
+            type: 'now',
+            date: x
+          });
+        }
+        for (var x = 1; this.date.length < 42; x++) {
+          this.date.push({
+            type: 'after',
+            date: x
+          });
+        }
+      },
+      //初始化周
+      initDay() {
+        for (var x = 0; x < 6; x++) {
+          this.day.push({
+            index: x,
+            type: 'normal'
+          })
+        }
+      }
+    },
+    mounted() {
+      this.pickerDate = new Date();
+      this.initDate();
+      this.initDay();
+    }
+  }
+</script>
+
+<style lang="scss">
+  .a-date .date {
+    font-size: 0.8rem;
+    height: 400px;
+    display: inline-block;
+    background-image: url('../../static/img/date-bg.png');
+    background-size: auto 100%;
+  }
+
+  .a-date .date {
+    padding: 20px;
+  }
+
+  .a-date .date .date-top {
+    display: flex;
+  }
+
+  .a-date .date .date-top {
+    color: #E3F2FD;
+  }
+
+  .a-date .date .date-top span {
+    font-size: 0.8rem;
+    text-align: center;
+    flex: 1;
+  }
+
+  .a-date .date .date-top span span,
+  .a-date .date .date-top i {
+    cursor: pointer;
+  }
+
+  .a-date .date .date-top span span:hover,
+  .a-date .date .date-top i:hover {
+    color: #6DC9FF;
+  }
+
+
+  .line {
+    margin: 20px auto;
+    background-color: #BBDEFB;
+    width: 100%;
+    height: 1px;
+  }
+
+  .a-date .date {
+    .bottm-title {
+      width: 100%;
+      text-align: center;
+      line-height: 4rem;
+      font-weight: bold;
+      color: #9FA8DA;
+    }
+
+    .date-title {
+      margin-bottom: 8px;
+      display: flex;
+      color: #E3F2FD;
+    }
+
+    .date-title,
+    .date-day .date-day-line {
+      padding: 4px;
+      font-size: 0.8rem;
+    }
+
+    .date-day .date-day-line {
+      color: #B0BEC5;
+      transition: all 0.3s linear;
+    }
+
+    .date-day .date-day-line:hover {
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 2rem;
+    }
+
+    .date-day .date-day-line .now {
+      color: #B3E5FC;
+    }
+
+    .date-day .date-day-line .tag {
+      width: 4px;
+      height: 4px;
+      border-radius: 4px;
+      background-color: #26C6DA;
+      position: relative;
+      left: 1.5rem;
+      bottom: 1.7rem;
+    }
+  }
+
+  .a-date .date .date-title span,
+  .a-date .date .date-day .date-day-line span {
+    text-align: center;
+    height: 2rem;
+    width: 2rem;
+    line-height: 2rem;
+    display: inline-block;
+  }
+
+  .a-date .date .date-day .date-day-line span {
+    cursor: pointer;
+    transition: all 0.3s linear;
+  }
+
+  .a-date .date .date-day .date-day-line span:hover {
+    background: #6DC9FF;
+    border-radius: 50%;
+    color: #FFFFFF;
+  }
+</style>
