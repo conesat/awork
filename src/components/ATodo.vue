@@ -1,38 +1,46 @@
 <!-- 待完成 -->
 <template>
   <div class="a-todo">
-    <div class="title" style="position: relative;">
-      <img src="../assets/a-work-title.png" />
-      代办事项
-      <span class="fa fa-plus" title="新建任务" @click.stop="add()"></span>
+    <div class="list" v-show="false">
+      <div class="title" style="position: relative;">
+        <img src="../assets/a-work-title.png" />
+        代办事项
+        <span class="fa fa-plus" title="新建任务" @click.stop="add()"></span>
+      </div>
+      <div class="list">
+        <div v-if="list.length==0" class="no-todo">
+          暂无任务，<span @click.stop="add()">新建一个</span> 吧
+        </div>
+        <div class="item" :class="{'on-edit':editIndex==index}" v-for="(item,index) in list" @contextmenu.prevent="showRightMenu($event,index)">
+          <span class="item-title">{{item.title}}</span>
+          <span class="fa fa-check" title="完成任务"></span>
+          <span class="fa fa-trash" title="删除任务" @click="remove(index)"></span>
+        </div>
+      </div>
+      <div class="vpopmenu" v-if="rightMenuStyle.show" :style="{left:rightMenuStyle.left+'px',top:rightMenuStyle.top+'px'}">
+        <div @click.stop="edit(editIndex);">
+          <i class="fa fa-pencil"></i>
+          编辑
+        </div>
+        <div @click.stop="top(editIndex);">
+          <i class="fa fa-arrow-up"></i>
+          置顶
+        </div>
+        <div @click.stop="finish(editIndex);">
+          <i class="fa fa-check"></i>
+          完成
+        </div>
+        <div class="delete" @click.stop="remove(editIndex);">
+          <i class="fa fa-trash"></i>
+          删除
+        </div>
+      </div>
     </div>
-    <div class="list">
-      <div v-if="list.length==0" class="no-todo">
-        暂无任务，<span @click.stop="add()">新建一个</span> 吧
-      </div>
-      <div class="item" :class="{'on-edit':editIndex==index}" v-for="(item,index) in list" @contextmenu.prevent="showRightMenu($event,index)">
-        <span class="item-title">{{item.title}}</span>
-        <span class="fa fa-check" title="完成任务"></span>
-        <span class="fa fa-trash" title="删除任务" @click="remove(index)"></span>
-      </div>
-    </div>
-    <div class="vpopmenu" v-if="rightMenuStyle.show" :style="{left:rightMenuStyle.left+'px',top:rightMenuStyle.top+'px'}">
-      <div @click.stop="edit(editIndex);">
-        <i class="fa fa-pencil"></i>
-        编辑
-      </div>
-      <div @click.stop="top(editIndex);">
-        <i class="fa fa-arrow-up"></i>
-        置顶
-      </div>
-      <div @click.stop="finish(editIndex);">
-        <i class="fa fa-check"></i>
-        完成
-      </div>
-      <div class="delete" @click.stop="remove(editIndex);">
-        <i class="fa fa-trash"></i>
-        删除
-      </div>
+    <div class="add-pane">
+      <i class="fa fa-arrow-left"></i>
+      <input placeholder="请输入标题,最多20字" class="input-title" />
+      <textarea v-model="addWorkForm.detail" placeholder="请输入内容,最多1000字" maxlength="1000" />
+
     </div>
 
     <div class="add-dialog" v-if="showAddDialog">
@@ -153,7 +161,40 @@
     border-radius: 6px;
     box-sizing: border-box;
     padding: 0.625rem;
+    .add-pane{
+      .fa-arrow-left {
+        color: #607D8B;
+        cursor: pointer;
+        transition: all 0.1s linear;
+      }
+      .fa-arrow-left:hover {
+        color: #29B6F6;
+      }
 
+      input,textarea,select {
+        padding: 10px 0;
+        font-family: auto;
+        color: #546E7A;
+        transition: all 0.3s linear;
+        box-sizing: border-box;
+        margin: 0;
+        width: 100%;
+        border: none;
+        outline: none;
+        border-bottom: 1px #CFD8DC solid;
+      }
+      select{
+        line-height: 2rem;
+      }
+      textarea{
+        margin-top: 20px;
+        height: 8rem;
+        resize: none;
+      }
+      input:focus,textarea:focus,select:focus {
+        border-bottom: 1px #29B6F6 solid;
+      }
+    }
     .add-dialog {
       width: 100%;
       height: 100%;

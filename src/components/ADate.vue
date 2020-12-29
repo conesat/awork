@@ -214,7 +214,7 @@
 <style lang="scss">
   .a-date .date {
     font-size: 0.8rem;
-    height: 400px;
+    //height: 400px;
     display: inline-block;
     background-image: url('../../static/img/date-bg.png');
     background-size: auto 100%;
@@ -250,7 +250,8 @@
 
 
   .line {
-    margin: 20px auto;
+    margin-top: 20px;
+    margin-bottom: 10px;
     background-color: #BBDEFB;
     width: 100%;
     height: 1px;
@@ -260,13 +261,12 @@
     .bottm-title {
       width: 100%;
       text-align: center;
-      line-height: 4rem;
+      line-height: 2rem;
       font-weight: bold;
       color: #9FA8DA;
     }
 
     .date-title {
-      margin-bottom: 8px;
       display: flex;
       color: #E3F2FD;
     }
