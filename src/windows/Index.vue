@@ -60,6 +60,7 @@
         flex: 1;
         height: 100%;
         margin-left: 10px;
+        overflow: auto;
       }
 
       .plan-right:hover {

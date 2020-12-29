@@ -39,6 +39,9 @@
 </template>
 
 <script>
+  import {
+    globalBus
+  } from '@/assets/js/globalBus.js';
   export default {
     name: 'ADate',
     data() {
@@ -48,22 +51,50 @@
         pickerDate: undefined, //日历
         pikerDateYear: '',
         pikerDateMoth: '',
+        pikerIndex: '', //当前选中的是数组哪一个
 
 
         chioceYear: "", //选中年份
         chioceMoth: "", //选中月份
         chioceDate: "", //选中日期
         chioceWeek: "", //选中周
+
+
+        //Aplane 交互
+        aPlane: {
+          changeShowType: 'moth',
+        }
       }
     },
+    created() {
+      globalBus.$on('aDate_getDateList', (type) => {
+        this.aPlane.changeShowType=type;
+        return this.getDateList(type);
+      });
+    },
     methods: {
+      getDateList(type) {
+        if (type == 'moth') {
+          globalBus.$emit('aPlane_changeShowTypeBack', {
+            year:this.chioceYear,
+            moth:this.chioceMoth
+          });
+        } else {
+          if(this.chioceWeek==-1){
+            return;
+          }
+          var res = this.date.slice(7 * this.chioceWeek, 7 * (this.chioceWeek + 1));
+          globalBus.$emit('aPlane_changeShowTypeBack', res);
+        }
+      },
       choiceDateFun(e, index) {
         var parent = e.currentTarget.parentElement;
         var date = this.date[index];
         this.chioceYear = date.year;
         this.chioceMoth = date.moth;
         this.chioceDate = date.date;
-        this.chioceWeek = parent.getAttribute("index")
+        this.chioceWeek = parent.getAttribute("index");
+        this.getDateList(this.aPlane.changeShowType);
       },
       beforMoth() {
         var currentDate = this.pickerDate;
@@ -120,7 +151,6 @@
           });
           if (beforYearValue == this.chioceYear && beforMothValue == this.chioceMoth && date - x == this.chioceDate) {
             this.chioceWeek = Math.ceil(this.date.length / 7) - 1;
-            console.log(123)
           }
         }
 
