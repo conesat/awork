@@ -56,14 +56,20 @@
             <span class="fa fa-plus" title="添加" @click="addWorkType()"></span>
           </div>
           <textarea v-model="addWorkForm.detail" placeholder="请输入内容,最多1000字" maxlength="1000" />
-
           </div>
       </div>
     </div>
+   <script type="text/html" id="swalHtml">
+     <div style="display: flex;width: 20rem;margin: 3rem auto;padding: 14px;background: #FFFFFF;box-sizing: border-box;border-radius: 4px;box-shadow: 0 0 4px #B3E5FC;">
+       <input style="color: #607D8B;flex: 1;outline: none;border: none;font-size: 1rem;" placeholder="请输入类型"/>
+       <span class="sweetalert2-add">添加</span>
+     </div>
+   </script>
   </div>
 </template>
 
 <script>
+  import Swal from 'sweetalert2'
   export default {
     name: 'ATodo',
     components: {},
@@ -77,6 +83,7 @@
           show: false,
         },
         showAdd:false,
+        showAddType:false,
         addWorkForm:{
           index:'',
           id:'',
@@ -95,7 +102,42 @@
          this.showAdd = true;
       },
       addWorkType(){
-        var type=prompt("请输入类型");
+        Swal.fire({
+          title: '添加类型',
+          input: 'text',
+          inputAttributes: {
+            autocapitalize: 'off'
+          },
+          showCancelButton:  false,
+          confirmButtonText: '添加',
+          showLoaderOnConfirm: true,
+          preConfirm: (login) => {
+            return fetch(`//api.github.com/users/${login}`)
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error(response.statusText)
+                }
+                return response.json()
+              })
+              .catch(error => {
+                Swal.showValidationMessage(
+                  `Request failed: ${error}`
+                )
+              })
+          },
+          allowOutsideClick: () => !Swal.isLoading()
+        }).then((result) => {
+          if (result.isConfirmed) {
+            Swal.fire({
+              title: `${result.value.login}'s avatar`,
+              imageUrl: result.value.avatar_url
+            })
+          }
+        })
+        /* Swal.fire({
+          html:document.getElementById("swalHtml").innerHTML,
+         showConfirmButton: false,
+        }) */
       },
       addWork(){
         this.addWorkForm.title=this.addWorkForm.title.trim();
@@ -163,12 +205,12 @@
         this.rightMenuStyle.show = true
       },
       clickOther() {
+        this.showAddType=false;
         this.rightMenuStyle.show = false;
         this.editIndex = -1;
       }
     },
     mounted() {
-
       window.addEventListener("click", this.clickOther);
     },
     beforeDestroy() { // 实例销毁之前对点击事件进行解绑
@@ -177,7 +219,7 @@
   }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
   .a-todo {
     position: relative;
     transition: all 0.1s linear;
@@ -189,7 +231,15 @@
     border-radius: 6px;
     box-sizing: border-box;
     padding: 0.625rem;
-
+    .sweetalert2-add{
+      cursor: pointer;
+      white-space: nowrap;
+      color: #78909C;
+      transition: all 0.1s linear;
+    }
+    .sweetalert2-add:hover{
+      color: #0288D1;
+    }
     .add-pane{
       overflow: hidden;
       transition: all 0.2s linear;
@@ -199,7 +249,7 @@
       .select-type{
         display: flex;
         .fa-plus{
-           transition: all 0.2s linear;
+          transition: all 0.2s linear;
           cursor: pointer;
           line-height: 2.4rem;
           width: 3rem;

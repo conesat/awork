@@ -18,6 +18,13 @@
 </template>
 
 <script>
+  // 加载模块
+  const nedb = require('nedb');
+  // 实例化连接对象（不带参数默认为内存数据库）
+  const db = new nedb({
+    filename: '/data/save.db',
+    autoload: true
+  });
   import ADate from '@/components/ADate'
   import APlane from '@/components/APlane'
   import ATodo from '@/components/ATodo'
@@ -38,7 +45,18 @@
 
     },
     mounted() {
+      // 插入单项
+      db.insert({
+        name: 'tom'
+      }, (err, ret) => {});
 
+      // 查询单项
+      db.findOne({
+        name: 'tom'
+      }, (err, ret) => {
+        console.log(ret)
+        console.log(err)
+      });
     }
   }
 </script>
