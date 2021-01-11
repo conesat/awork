@@ -69,6 +69,13 @@
 </template>
 
 <script>
+  // 加载模块
+  const nedb = require('nedb');
+  // 实例化连接对象（不带参数默认为内存数据库）
+  const db = new nedb({
+    filename: '/data/awork.db',
+    autoload: true
+  });
   import Swal from 'sweetalert2'
   export default {
     name: 'ATodo',
@@ -103,41 +110,36 @@
       },
       addWorkType(){
         Swal.fire({
-          title: '添加类型',
           input: 'text',
+          inputPlaceholder: '请输入类型',
           inputAttributes: {
             autocapitalize: 'off'
           },
           showCancelButton:  false,
           confirmButtonText: '添加',
           showLoaderOnConfirm: true,
-          preConfirm: (login) => {
-            return fetch(`//api.github.com/users/${login}`)
-              .then(response => {
-                if (!response.ok) {
-                  throw new Error(response.statusText)
-                }
-                return response.json()
-              })
-              .catch(error => {
-                Swal.showValidationMessage(
-                  `Request failed: ${error}`
-                )
-              })
-          },
-          allowOutsideClick: () => !Swal.isLoading()
-        }).then((result) => {
-          if (result.isConfirmed) {
-            Swal.fire({
-              title: `${result.value.login}'s avatar`,
-              imageUrl: result.value.avatar_url
-            })
           }
+          ).then((result) => {
+            console.log(result)
+            // 插入单项
+            db.insert({
+              name: 'tom'
+            }, (err, ret) => {});
+            
+            // 查询单项
+            db.findOne({
+              name: 'tom'
+            }, (err, ret) => {
+              console.log(ret)
+              console.log(err)
+            });
+            if (result.isConfirmed) {
+              Swal.fire({
+                title: `已添加`,
+                icon: 'success'
+              })
+            }
         })
-        /* Swal.fire({
-          html:document.getElementById("swalHtml").innerHTML,
-         showConfirmButton: false,
-        }) */
       },
       addWork(){
         this.addWorkForm.title=this.addWorkForm.title.trim();

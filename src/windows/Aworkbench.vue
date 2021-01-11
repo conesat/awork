@@ -4,7 +4,9 @@
 
 		</div>
 		<div class="right">
-			<div class="top"></div>
+			<div class="top">
+				<img src="../assets/logo.png" height="48px"/>
+			</div>
 			<div class="center">
 				<div class="apps">
 					<div class="item" v-for="(app,index) in apps">
@@ -57,14 +59,14 @@
 			.top {
 				height: 3rem;
 				width: 100%;
-				background-color: #9E9E9E;
+				
 			}
 
 			.center {
 				flex: 1;
 				height: 100%;
 				overflow-y: auto;
-				
+
 			}
 		}
 
@@ -88,7 +90,7 @@
 				padding: 16px;
 				box-sizing: border-box;
 				transition: all 0.2s cubic-bezier(1,-0.7,0,2);
-				
+
 				.card{
 					position: relative;
 					transition: all 0.1s ease;

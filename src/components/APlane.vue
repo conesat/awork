@@ -26,8 +26,7 @@
       </div>
     </div>
     <div class="bottom">
-
-      <table ref='table' @mousedown="move" :style="{'left':positionX+'px','top':positionY+'px','transform':'scale('+tableScale+')'}">
+      <table @dblclick="reloadTable()" ref='table' @mousedown="move" :style="{'left':positionX+'px','top':positionY+'px','transform':'scale('+tableScale+')'}">
         <thead>
           <tr>
             <th style="white-space: nowrap;">分类</th>
@@ -228,6 +227,7 @@
     flex-direction: column;
 
     .bottom {
+      width: 100%;
       flex: 1;
       padding-top: 4px;
       overflow: hidden;

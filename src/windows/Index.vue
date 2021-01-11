@@ -3,17 +3,7 @@
     <div class="menu-left">
       <AMenu></AMenu>
     </div>
-    <div class="date-div">
-      <div class="top">
-        <ADate></ADate>
-      </div>
-      <div class="bottom">
-        <ATodo></ATodo>
-      </div>
-    </div>
-    <div class="plan-right">
-      <APlane></APlane>
-    </div>
+    <router-view style="flex: 1;"/>
   </div>
 </template>
 

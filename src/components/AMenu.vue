@@ -2,10 +2,10 @@
   <div class="a-menu">
     <div class="menus-table">
       <div class="menus">
-        <div class="item home" @click="choiceMenuFun('home')">
+        <div class="item home" @click="choiceMenuFun('home','/')">
           <img src="../assets/icon/menu/a-menu-home.png" :class="{'active':choiceMenu=='home'}" title="首页" />
         </div>
-        <div class="item" @click="choiceMenuFun('work')">
+        <div class="item" @click="choiceMenuFun('work','/aworkBench')">
           <img src="../assets/icon/menu/a-menu-work.png" :class="{'active':choiceMenu=='work'}" title="工作台" />
         </div>
         <div class="item setting" @click="choiceMenuFun('setting')">
@@ -25,8 +25,9 @@
       }
     },
     methods: {
-      choiceMenuFun(menu) {
+      choiceMenuFun(menu,url) {
         this.choiceMenu = menu;
+        this.$router.push(url)
       }
     },
     mounted() {
