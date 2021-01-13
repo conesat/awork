@@ -46,7 +46,6 @@
     display: flex;
     box-sizing: border-box;
     height: 100%;
-    padding: 6px;
 
     .plan-right {
       background: #FFFFFF;

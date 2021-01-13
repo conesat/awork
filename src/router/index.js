@@ -12,7 +12,12 @@ export default new Router({
         path: '/',
         name: 'Report',
        component: () => import("@/windows/AReport"),
-      }
+      },
+      {
+          path: 'setting',
+          name: 'Setting',
+         component: () => import("@/windows/Setting"),
+        }
     ]
   },
   {
