@@ -5,24 +5,41 @@ Vue.use(Router)
 
 export default new Router({
   routes: [{
-    path: '/',
-    name: 'Index',
-    component: () => import("@/windows/Index"),
-    children: [{
-        path: '/',
-        name: 'Report',
-       component: () => import("@/windows/AReport"),
-      },
-      {
+      path: '/',
+      name: 'Index',
+      component: () => import("@/windows/Index"),
+      children: [{
+          path: '/',
+          name: '/',
+          component: () => import("@/windows/AReport"),
+        },
+        {
           path: 'setting',
-          name: 'Setting',
-         component: () => import("@/windows/Setting"),
+          name: 'setting',
+          component: () => import("@/windows/Setting"),
+          children: [{
+              path: 'theme',
+              name: 'theme',
+              component: () => import("@/components//setting/Theme"),
+            },
+            {
+              path: 'account',
+              name: 'account',
+              component: () => import("@/components//setting/Account"),
+            },
+            {
+              path: 'about',
+              name: 'about',
+              component: () => import("@/components//setting/About"),
+            }
+          ]
         }
-    ]
-  },
-  {
-    path: '/aworkBench',
-    name: 'Index',
-    component: () => import("@/windows/AworkBench")
-  }]
+      ]
+    },
+    {
+      path: '/aworkBench',
+      name: 'aworkBench',
+      component: () => import("@/windows/AworkBench")
+    }
+  ]
 })

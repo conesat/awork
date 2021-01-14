@@ -1,5 +1,5 @@
 <template>
-  <div class="index">
+  <div class="index" :style="{'background':this.$common.theme.bgColor}">
     <div class="menu-left">
       <AMenu></AMenu>
     </div>
@@ -53,7 +53,6 @@
 
 <style lang="scss">
   html {
-    background-color: #ECEFF1;
     -webkit-user-select: none;
     -moz-user-select: none;
     -o-user-select: none;

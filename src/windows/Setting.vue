@@ -2,31 +2,21 @@
   <div class="setting-main">
     <div style="margin: 0 auto;display: flex;">
       <div class="left">
-        <div class="item" :class="{'active':choiceItem=='theme'}" @click="choice('theme')">
+        <div class="item" :class="{'active':choiceItem=='theme'}" @click="choiceMenuFun('theme')">
           <img src="../assets/icon/setting/theme.png" />
           <span>主题</span>
         </div>
-        <div class="item " :class="{'active':choiceItem=='account'}" @click="choice('account')">
+        <div class="item " :class="{'active':choiceItem=='account'}" @click="choiceMenuFun('account')">
           <img src="../assets/icon/setting/account.png" />
           <span>账号</span>
         </div>
-        <div class="item" :class="{'active':choiceItem=='about'}" @click="choice('about')">
+        <div class="item" :class="{'active':choiceItem=='about'}" @click="choiceMenuFun('about')">
           <img src="../assets/icon/setting/about.png" />
           <span>关于</span>
         </div>
       </div>
       <div class="right">
-        <div class="item">
-          <label>内置风格：</label>
-          <select class="input">
-            <option>
-              亮色
-            </option>
-            <option>
-              暗色
-            </option>
-          </select>
-        </div>
+        <router-view/>
       </div>
     </div>
   </div>
@@ -34,16 +24,22 @@
 
 <script>
   export default {
+    components: {},
     name: 'Setting',
     data() {
       return {
-        choiceItem: 'theme'
+        choiceItem: 'theme',
       }
     },
     methods: {
-      choice(item) {
-        this.choiceItem = item
-      }
+      choiceMenuFun(menu) {
+        this.choiceItem = menu;
+        var url="/setting/"+menu;
+        this.$router.push(url).catch(err => {err})
+      },
+    },
+    mounted() {
+      this.choiceMenuFun('theme');
     }
   }
 </script>
@@ -73,6 +69,7 @@
       border-right: 2px #e3e3e3 solid;
 
       .item {
+
         color: #7f8c8d;
         cursor: pointer;
         display: flex;
@@ -107,21 +104,7 @@
       padding-top: 20px;
       padding-bottom: 20px;
 
-      .item {
-        display: flex;
 
-        label {
-          text-align: right;
-          width: 10rem;
-        }
-
-        .input {
-          font-size: 1rem;
-          color: #7f8c8d;
-          border: none;
-          flex: 1;
-        }
-      }
     }
   }
 

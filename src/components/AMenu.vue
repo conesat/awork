@@ -37,7 +37,7 @@
     methods: {
       choiceMenuFun(menu,url) {
         this.choiceMenu = menu;
-        this.$router.push(url)
+        this.$router.push(url).catch(err => {err})
       },
       addActiveApp(app){
 

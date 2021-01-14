@@ -3,9 +3,12 @@
 import Vue from 'vue'
 import App from './App'
 import router from './router'
+import vcolorpicker from 'vcolorpicker'
+import Common from '@/common/Common'
 
+Vue.prototype.$common = Common;
 Vue.config.productionTip = false
-
+Vue.use(vcolorpicker)
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
