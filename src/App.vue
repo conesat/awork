@@ -4,7 +4,7 @@
       <div class="left">
         <img src="./assets/logo.png" height="100%" />
         <span>爱生活-爱工作</span>
-       </div>
+      </div>
       <div class="right">
         <span class="fa fa-window-minimize"></span>
         <span class="fa fa-window-restore"></span>
@@ -36,11 +36,14 @@
       color: #546E7A;
       line-height: 2rem;
       font-size: 0.8rem;
+      
 
       .left {
         display: flex;
         margin-left: 10px;
         flex: 1;
+        -webkit-app-region: drag;
+        -webkit-user-select: none;
       }
 
       .right {
