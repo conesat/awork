@@ -1,17 +1,17 @@
 <template>
   <div class="a-menu">
     <div class="menus-table">
-      <div class="menus">
-        <div class="item home" @click="choiceMenuFun('home','/')">
-          <img src="../assets/icon/menu/a-menu-home.png" :class="{'active':choiceMenu=='home'}" title="首页" />
+      <div class="menus" :style="{'background':this.$store.state.theme.bfColor}">
+        <div class="item home" @click="choiceMenuFun('/','/')">
+          <img src="../assets/icon/menu/a-menu-home.png" :class="{'active':choiceMenu=='/'}" title="首页" />
         </div>
         <div class="active-app">
-          <div class="item" @click="choiceMenuFun('work','/aworkBench')" v-for="(app,index) in activeApps">
-            <img src="../assets/icon/menu/a-menu-work.png" :class="{'active':choiceMenu=='work'}" :title="app.name" />
+           <div class="item" @click="choiceMenuFun('/aReport','/aReport')" v-for="(app,index) in activeApps">
+            <img src="../assets/icon/menu/a-menu-work.png" :class="{'active':choiceMenu=='/aReport'}" :title="app.name" />
           </div>
         </div>
-        <div class="item setting" @click="choiceMenuFun('setting','/setting')">
-          <img src="../assets/icon/menu/a-menu-setting.png" :class="{'active':choiceMenu=='setting'}" title="设置" />
+        <div class="item setting" @click="choiceMenuFun('/setting/theme','/setting/theme')">
+          <img src="../assets/icon/menu/a-menu-setting.png" :class="{'active':choiceMenu=='/setting/theme'}" title="设置" />
         </div>
       </div>
     </div>
@@ -19,32 +19,45 @@
 </template>
 
 <script>
+  import {
+    globalBus
+  } from '@/assets/js/globalBus.js';
   export default {
     components: {},
     data() {
       return {
         choiceMenu: 'home',
-        activeApps:[
-          {
-            name:'应用',
-            url:'',
-            icon:'',
-            fixed:'false'
-          }
-        ]
+        activeApps: [{
+          name: '计划',
+          url: '',
+          icon: '',
+          fixed: 'false'
+        }]
       }
     },
+    created() {
+      globalBus.$on('openApp', (app) => {
+        if (app.type == "app") {
+          this.choiceMenu = app.url
+          this.$router.push(app.url).catch(err => {
+            err
+          })
+        }
+      });
+    },
     methods: {
-      choiceMenuFun(menu,url) {
+      choiceMenuFun(menu, url) {
         this.choiceMenu = menu;
-        this.$router.push(url).catch(err => {err})
+        this.$router.push(url).catch(err => {
+          err
+        })
       },
-      addActiveApp(app){
+      addActiveApp(app) {
 
       }
     },
     mounted() {
-
+      this.choiceMenu = this.$route.path
     }
   }
 </script>
@@ -71,19 +84,21 @@
         border-radius: 10px;
         background: #FFFFFF;
         box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.1);
-        .active-app{
+
+        .active-app {
           margin-top: 10px;
           border-top: 2px #c6c6c6 solid;
           padding: 10px 0;
           flex: 1;
         }
+
         .home {
-         /* position: absolute;
+          /* position: absolute;
           top: 0.8rem; */
         }
 
         .setting {
-         /* position: absolute;
+          /* position: absolute;
           bottom: 0.2rem; */
         }
 

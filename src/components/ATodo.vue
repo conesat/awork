@@ -1,6 +1,6 @@
 <!-- 待完成 -->
 <template>
-  <div class="a-todo">
+  <div class="a-todo" :style="{'background':this.$store.state.theme.bfColor}">
     <div class="list" :style="{'width':showAdd?'0':'100%'}">
       <div style="width: 252px;height: 100%;">
         <div style="width: 100%;display: flex;flex-direction: column;height: 100%;overflow: hidden;">
@@ -271,6 +271,7 @@
         margin-bottom: 10px;
       }
       input,textarea,select {
+        background: transparent;
         padding: 10px 0;
         font-family: auto;
         color: #546E7A;

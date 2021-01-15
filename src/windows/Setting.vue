@@ -1,5 +1,5 @@
 <template>
-  <div class="setting-main">
+  <div class="setting-main" :style="{'background':this.$store.state.theme.bfColor}">
     <div style="margin: 0 auto;display: flex;">
       <div class="left">
         <div class="item" :class="{'active':choiceItem=='theme'}" @click="choiceMenuFun('theme')">
@@ -37,9 +37,6 @@
         var url="/setting/"+menu;
         this.$router.push(url).catch(err => {err})
       },
-    },
-    mounted() {
-      this.choiceMenuFun('theme');
     }
   }
 </script>

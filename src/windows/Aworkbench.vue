@@ -1,15 +1,12 @@
 <template>
   <div class="a-workbench">
-    <div class="left">
-
-    </div>
     <div class="right">
       <div class="top">
         <img src="../assets/logo.png" height="48px" />
       </div>
       <div class="center">
         <div class="apps">
-          <div class="item" v-for="(app,index) in apps">
+          <div class="item" v-for="(app,index) in apps" @click="openApp(app)">
             <div class="card">
               <div class="bg"></div>
               <div class="bottom-info">
@@ -33,10 +30,19 @@
 </template>
 
 <script>
+  import {
+    globalBus
+  } from '@/assets/js/globalBus.js';
   export default {
     data() {
       return {
         apps: [{
+          name: '计划',
+          img: 'apps/UrlToJson/assets/logon.png',
+          info: '工作安排，周报日报',
+          url: '/aReport',
+          type: 'app'
+        }, {
           name: 'Url转Json',
           img: 'apps/UrlToJson/assets/logon.png',
           info: '编码后的Url直接转换Json'
@@ -44,7 +50,9 @@
       }
     },
     methods: {
-
+      openApp(app) {
+        globalBus.$emit('openApp', app);
+      }
     },
     mounted() {
 
@@ -56,36 +64,22 @@
   .a-workbench {
     height: 100%;
     background: 100%;
-    display: flex;
-    background-color: #06091d;
-    background-image: linear-gradient(#06091d, #040a1d);
-    padding: 3rem;
+    padding: 1rem;
     box-sizing: border-box;
 
-    .right {
-      padding: 2rem;
+    .top {
+      height: 3rem;
+      width: 100%;
+
+    }
+
+    .center {
       flex: 1;
-      display: flex;
-      flex-direction: column;
+      height: 100%;
+      overflow-y: auto;
 
-      .top {
-        height: 3rem;
-        width: 100%;
-
-      }
-
-      .center {
-        flex: 1;
-        height: 100%;
-        overflow-y: auto;
-
-      }
     }
 
-    .left {
-      background: #9E9E9E;
-      width: 3rem;
-    }
   }
 
   .a-workbench {
@@ -113,7 +107,7 @@
           height: 100%;
 
           .bg {
-             transition: all 0.2s ease-in-out;
+            transition: all 0.2s ease-in-out;
             background-position: center center;
             background-repeat: no-repeat;
             background-size: cover;
@@ -138,6 +132,7 @@
             bottom: 0;
             color: #FFFFFF;
             overflow: hidden;
+
             .info {
               padding: 1rem;
               box-sizing: border-box;
@@ -150,8 +145,10 @@
         box-shadow: 0 0 20px rgba(155, 209, 255, 0.5);
         border-radius: 0.4rem;
         padding: 0;
+
         .card {
           border-radius: 0.4rem;
+
           .bg {
             -webkit-filter: blur(5px);
             -moz-filter: blur(5px);
@@ -160,9 +157,11 @@
             filter: blur(5px);
             filter: progid:DXImageTransform.Microsoft.Blur(PixelRadius=4, MakeShadow=false);
           }
+
           .bottom-info {
             height: 100%;
             background: rgba(0, 0, 0, 0.5);
+
             .title {
               font-size: 1rem;
               line-height: 2rem;

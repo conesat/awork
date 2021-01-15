@@ -3,29 +3,35 @@
     <div class="title">主题风格</div>
     <div class="item">
       <label>内置风格：</label>
-      <select class="input">
-        <option>
+      <select class="input" v-model="themeType" @change="changeThemeType(themeType)" >
+        <option value="light">
           亮色
         </option>
-        <option>
+        <option value="night">
           暗色
         </option>
-        <option>
+        <option value="self">
           自定义
         </option>
       </select>
     </div>
+
     <div class="item">
       <label>背景颜色：</label>
       <div class="input">
         <div style="display: flex;flex: 1;">
-          <colorPicker v-model="bgColor" v-on:change="headleChangeColor($event,'bg')" />
-          <colorPicker v-model="bgColor1" v-on:change="headleChangeColor($event,'bg1')" />
+          <div style="position: relative;">
+            <div class="m-colorPicker" :style="{'background':this.theme.bgColorStart}" @click.stop="showChoiceFun('bgColorStart')"></div>
+            <color-picker v-show="showChoice=='bgColorStart'" class='picker' v-model="bgColorStart" @input="headleChangeColor($event,'bgColorStart')"></color-picker>
+          </div>
+          <div style="position: relative;" v-show="openBgLinear">
+            <div class="m-colorPicker" :style="{'background':this.theme.bgColorEnd}" @click.stop="showChoiceFun('bgColorEnd')"></div>
+            <color-picker v-show="showChoice=='bgColorEnd'" class='picker' v-model="bgColorEnd" @input="headleChangeColor($event,'bgColorEnd')"></color-picker>
+          </div>
         </div>
-
         <div style="display: flex;">
           <label>渐变</label>
-          <input type="checkbox" class="switch">
+          <input type="checkbox" class="switch" @input="changeBgLinearSwitch" v-model="openBgLinear">
         </div>
       </div>
 
@@ -34,48 +40,106 @@
       <label>前景颜色：</label>
       <div class="input">
         <div style="display: flex;flex: 1;">
-          <colorPicker v-model="bfColor" />
-          <colorPicker v-model="bfColor" />
+          <div style="position: relative;">
+            <div class="m-colorPicker" :style="{'background':this.theme.bfColor}" @click.stop="showChoiceFun('bfColor')"></div>
+            <color-picker v-show="showChoice=='bfColor'" class='picker' v-model="bfColor" @input="headleChangeColor($event,'bfColor')"></color-picker>
+          </div>
         </div>
+      </div>
+    </div>
 
-        <div style="display: flex;">
-          <label>渐变</label>
-          <input type="checkbox" class="switch">
-        </div>
-      </div>
-    </div>
-    <div class="item">
-      <label>普通字体：</label>
-      <div class="input">
-        <colorPicker v-model="normalFontColor" />
-      </div>
-    </div>
-    <div class="item">
-      <label>高亮字体：</label>
-      <div class="input">
-        <colorPicker v-model="activeFontColor" />
-      </div>
-    </div>
   </div>
 </template>
 
 <script>
+  import {
+    Chrome
+  } from 'vue-color' //有6中风格，用哪种直接引用对应的名字就行
   export default {
-    components: {},
+    components: {
+      'color-picker': Chrome
+    },
     name: 'Theme',
     data() {
       return {
-        bgColor: '#9d9d9d',
-        bgColor1: '#9d9d9d',
-        bfColor: '#9d9d9d',
+        themeType: this.$store.state.theme.themeType,
+        openBgLinear: this.$store.state.theme.openBgLinear,
+        openBfLinear: this.$store.state.theme.openBfLinear,
+        showChoice: '',
+        bgColorStart: {
+          hex: this.$store.state.theme.bgColorStart,
+          a: 1
+        },
+        bgColorEnd: {
+          hex: this.$store.state.theme.bgColorEnd,
+          a: 1
+        },
+        bfColor: {
+          hex: this.$store.state.theme.bfColor,
+          a: 1
+        },
+        theme: this.$store.state.theme,
+        isRouterAlive: true,
         normalFontColor: '#9d9d9d',
         activeFontColor: '#9d9d9d',
       }
     },
     methods: {
+      changeThemeType(e) {
+        this.theme.themeType = e;
+        this.updeteTheme();
+      },
+      changeBgLinearSwitch(e) {
+        this.theme.openBgLinear = e;
+        if (!e) {
+          this.theme.bgColorEnd = color;
+        }
+        this.updeteTheme();
+      },
+      clickOther(e) {
+        if (e.srcElement.className.indexOf('vc-') >= 0) {
+          return;
+        }
+        this.showChoice = '';
+      },
+      showChoiceFun(showChoice) {
+        this.showChoice = showChoice;
+      },
       headleChangeColor(e, type) {
-        console.log(e)
+        var color;
+        if (e.a < 1) {
+          color = 'rgba(' + e.rgba.r + ',' + e.rgba.g + ',' + e.rgba.b + ',' + e.rgba.a + ')'
+        } else {
+          color = e.hex;
+        }
+        switch (type) {
+          case 'bgColorEnd':
+            this.theme.bgColorEnd = color;
+            break;
+          case 'bgColorStart':
+            this.theme.bgColorStart = color;
+            if (!this.openBgLinear) {
+              this.theme.bgColorEnd = color;
+            }
+            break;
+          case 'bfColor':
+            this.theme.bfColor = color;
+            break;
+        }
+        this.updeteTheme();
+      },
+      updeteTheme() {
+        this.$store.commit({
+          type: 'setTheme',
+          theme: this.theme
+        });
       }
+    },
+    mounted() {
+      window.addEventListener("click", this.clickOther);
+    },
+    beforeDestroy() {
+      window.removeEventListener('click', this.clickOther);
     }
   }
 </script>
@@ -161,8 +225,17 @@
         }
 
         .m-colorPicker {
-          margin-top: 6px;
           margin-right: 10px;
+          width: 20px;
+          height: 20px;
+          border: 1px #eee solid;
+          margin-top: 4px;
+        }
+
+        .picker {
+          position: absolute;
+          z-index: 999;
+          margin-top: 10px;
         }
       }
     }

@@ -8,7 +8,7 @@
         <ATodo></ATodo>
       </div>
     </div>
-    <div class="plan-right">
+    <div class="plan-right" :style="{'background':this.$store.state.theme.bfColor}">
       <APlane></APlane>
     </div>
   </div>
