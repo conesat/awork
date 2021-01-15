@@ -85,7 +85,7 @@
       .item:hover,
       .item.active {
         color: #2980b9;
-        background: #efefef;
+        background: rgba($color: #efefef, $alpha: 0.6);
 
         img {
           height: 1.2rem;

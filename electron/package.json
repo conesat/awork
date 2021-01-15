@@ -1,0 +1,38 @@
+{
+  "name": "AWork",
+  "productName": "AWork",
+  "author": "hzl",
+  "version": "1.0.0",
+  "main": "main.js",
+  "description": "爱工作",
+  "scripts": {
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "build": {
+    "electronVersion": "1.8.4",
+    "win": {
+      "requestedExecutionLevel": "highestAvailable",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "appId": "awork",
+    "artifactName": "demo-${version}-${arch}.${ext}",
+    "nsis": {
+      "artifactName": "demo-${version}-${arch}.${ext}"
+    }
+  },
+  "dependencies": {
+    "core-js": "^2.4.1",
+    "electron-builder": "^20.44.4",
+    "electron-package": "^0.1.0",
+    "electron-updater": "^2.22.1"
+  }
+}

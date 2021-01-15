@@ -208,6 +208,7 @@
       }
 
       .input {
+        background: transparent;
         display: flex;
         margin-top: 2px;
         cursor: pointer;

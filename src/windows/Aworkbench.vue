@@ -3,6 +3,7 @@
     <div class="right">
       <div class="top">
         <img src="../assets/logo.png" height="48px" />
+        <span>今日好句：人生不是止水，总会出现许多出乎意料之事。泰山崩于前而色不变，风波骤起而泰然处之，就显得很重要。转危为安往往需要高超的心智，也需要好的心态。多思索少激动，多仁爱少仇恨，人生才变得更加美丽。</span>
       </div>
       <div class="center">
         <div class="apps">
@@ -68,9 +69,21 @@
     box-sizing: border-box;
 
     .top {
+      display: flex;
       height: 3rem;
       width: 100%;
 
+      span {
+        text-overflow: -o-ellipsis-lastline;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        margin: 12px 20px;
+        color: #95a5a6;
+      }
     }
 
     .center {
