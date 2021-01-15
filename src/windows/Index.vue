@@ -1,5 +1,5 @@
 <template>
-  <div class="index" :style="{'background':'linear-gradient(135deg,'+this.$store.state.theme.bgColorStart+', '+this.$store.state.theme.bgColorEnd+')'}">
+  <div class="index">
     <div class="menu-left">
       <AMenu></AMenu>
     </div>
@@ -29,7 +29,7 @@
 
     },
     mounted() {
-     
+
     }
   }
 </script>
