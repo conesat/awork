@@ -9,7 +9,8 @@
         <div class="apps">
           <div class="item" v-for="(app,index) in apps" @click="openApp(app)">
             <div class="card">
-              <div class="bg"></div>
+              <div class="bg" :style="{'background-image': 'url('+app.img+')'}"></div>
+
               <div class="bottom-info">
                 <span class="title">
                   {{app.name}}
@@ -39,13 +40,13 @@
       return {
         apps: [{
           name: '计划',
-          img: 'apps/UrlToJson/assets/logon.png',
+          img: './static/img/apps/aplane.png',
           info: '工作安排，周报日报',
           url: '/aReport',
           type: 'app'
         }, {
           name: 'Url转Json',
-          img: 'apps/UrlToJson/assets/logon.png',
+          img: './static/img/apps/urlToJson.png',
           info: '编码后的Url直接转换Json'
         }]
       }
@@ -114,6 +115,7 @@
         transition: all 0.2s cubic-bezier(1, -0.7, 0, 2);
 
         .card {
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
           position: relative;
           transition: all 0.1s ease;
           width: 100%;
@@ -124,7 +126,6 @@
             background-position: center center;
             background-repeat: no-repeat;
             background-size: cover;
-            background-image: url(../assets/apps/urlToJson.png);
             position: absolute;
             left: 0;
             top: 0;

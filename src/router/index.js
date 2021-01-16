@@ -25,17 +25,17 @@ export default new Router({
         children: [{
             path: 'theme',
             name: 'theme',
-            component: () => import("@/components//setting/Theme"),
+            component: () => import("@/components/setting/Theme"),
           },
           {
             path: 'account',
             name: 'account',
-            component: () => import("@/components//setting/Account"),
+            component: () => import("@/components/setting/Account"),
           },
           {
             path: 'about',
             name: 'about',
-            component: () => import("@/components//setting/About"),
+            component: () => import("@/components/setting/About"),
           }
         ]
       }

@@ -49,11 +49,23 @@
         <div style="flex: 1;overflow-y: auto;">
           <input v-model="addWorkForm.title" placeholder="请输入标题,最多20字" class="input-title" />
           <div class="select-type">
-            <select v-model="addWorkForm.type">
+           <!-- <select v-model="addWorkForm.type">
               <option value="" selected="selected">请选择分类</option>
-              <option value="1">第三方对接</option>
-            </select>
-            <span class="fa fa-plus" title="添加" @click="addWorkType()"></span>
+              <option value="1" v-for="(type,index) in typeList"></option>
+            </select> -->
+            <div class="input-div" @click.stop="showTypeSelectFun">
+              <span class="text" v-html="addWorkForm.type">请选择分类</span>
+              <span class="fa fa-angle-down"></span>
+            </div>
+            <div class="type-select" v-show="showTypeSelect">
+              <div class="items">
+                <div class="item" v-for="(type,index) in typeList">
+                  <span @click="selectWorkType(type)">{{type.name}}</span>
+                  <span class="fa fa-trash delete" title="删除" @click.stop="removeWorkType(type)"></span>
+                </div>
+              </div>
+              <div class="add-bottom" @click.stop="addWorkType()">新建分类</div>
+            </div>
           </div>
           <textarea v-model="addWorkForm.detail" placeholder="请输入内容,最多1000字" maxlength="1000" />
           </div>
@@ -73,7 +85,7 @@
   const nedb = require('nedb');
   // 实例化连接对象（不带参数默认为内存数据库）
   const db = new nedb({
-    filename: '/data/awork.db',
+    filename: '/data/aplane-type.db',
     autoload: true
   });
   import Swal from 'sweetalert2'
@@ -82,6 +94,7 @@
     components: {},
     data() {
       return {
+        typeList:[],
         list: [],
         editIndex: -1,
         rightMenuStyle: {
@@ -97,16 +110,53 @@
           title:'',
           detail:'',
           status:'',
-          type:''
-        }
+          type:'请选择分类'
+        },
+        showTypeSelect:false,
       }
     },
     methods: {
       remove(index) {
-        this.list.splice(index, 1);
+        var _this=this;
+        Swal.fire({
+          title: '确认删除"'+this.list[index].title+'"吗?',
+          showDenyButton: true,
+          showCancelButton: true,
+          showConfirmButton: false,
+          denyButtonText: `确认`,
+          cancelButtonText: `取消`,
+        }).then((result) => {
+          if (result.isDenied) {
+             this.list.splice(index, 1);
+          }
+        })
       },
       add() {
          this.showAdd = true;
+      },
+      selectWorkType(type){
+        this.addWorkForm.type=type.name;
+      },
+      showTypeSelectFun(){
+        this.showTypeSelect=!this.showTypeSelect;
+      },
+      removeWorkType(type){
+        var _this=this;
+        Swal.fire({
+          title: '确认删除"'+type.name+'"吗?',
+          showDenyButton: true,
+          showCancelButton: true,
+          showConfirmButton: false,
+          denyButtonText: `确认`,
+          cancelButtonText: `取消`,
+        }).then((result) => {
+          if (result.isDenied) {
+            db.remove({ _id: type._id }, {}, function (err, numRemoved) {
+                _this.loadTypes();
+            });
+
+          }
+        })
       },
       addWorkType(){
         Swal.fire({
@@ -120,26 +170,27 @@
           showLoaderOnConfirm: true,
           }
           ).then((result) => {
-            console.log(result)
-            // 插入单项
-            db.insert({
-              name: 'tom'
-            }, (err, ret) => {});
-            
-            // 查询单项
-            db.findOne({
-              name: 'tom'
-            }, (err, ret) => {
-              console.log(ret)
-              console.log(err)
-            });
             if (result.isConfirmed) {
-              Swal.fire({
-                title: `已添加`,
-                icon: 'success'
-              })
+              // 插入单项
+              db.insert({
+                name: result.value
+              }, (err, ret) => {
+                if(ret){
+                  Swal.fire({
+                    title: `已添加`,
+                    icon: 'success'
+                  })
+                  this.loadTypes();
+                }else{
+                  Swal.fire({
+                    title: `添加失败`,
+                    icon: 'error'
+                  })
+                }
+              });
             }
         })
+
       },
       addWork(){
         this.addWorkForm.title=this.addWorkForm.title.trim();
@@ -170,6 +221,7 @@
           this.addWorkForm.id='';
           this.addWorkForm.title='';
           this.addWorkForm.detail='';
+          this.addWorkForm.type='请选择分类';
         }
 
       },
@@ -206,14 +258,26 @@
         }
         this.rightMenuStyle.show = true
       },
-      clickOther() {
+      clickOther(e) {
+        if(e.srcElement.className.indexOf("swal2")!=-1){
+          return;
+        }
         this.showAddType=false;
         this.rightMenuStyle.show = false;
         this.editIndex = -1;
+        this.showTypeSelect=false;
+      },
+      loadTypes(){
+        var _this=this;
+        // 查询所有结果集
+        db.find({}, function (err, docs) {
+          _this.typeList=docs;
+        });
       }
     },
     mounted() {
       window.addEventListener("click", this.clickOther);
+      this.loadTypes();
     },
     beforeDestroy() { // 实例销毁之前对点击事件进行解绑
       window.removeEventListener('click', this.clickOther);
@@ -222,7 +286,11 @@
 </script>
 
 <style lang="scss" scoped>
+
   .a-todo {
+    *{
+      transition: all 0.2s linear;
+    }
     position: relative;
     transition: all 0.1s linear;
     overflow: hidden;
@@ -250,8 +318,87 @@
 
       .select-type{
         display: flex;
+        position: relative;
+        .input-div{
+          cursor: pointer;
+          font-size: 0.9rem;
+          padding: 10px 0;
+          color: #546E7A;
+          transition: all 0.3s linear;
+          box-sizing: border-box;
+          width: 100%;
+          border-bottom: 1px #CFD8DC solid;
+          display: flex;
+          .text{
+            padding: 0 4px;
+            flex: 1;
+          }
+          span{
+            line-height: 1.2rem;
+          }
+        }
+        .type-select{
+          font-size: 0.8rem;
+          display: flex;
+          flex-direction: column;
+          position: absolute;
+          width: 100%;
+          max-height: 200px;
+          background: #fff;
+          top: 44px;
+          box-shadow: 0 2px 4px #6c6c6c;
+          border-radius: 2px;
+          width: calc(100% - 4px);
+          left: 2px;
+          .items{
+            flex: 1;
+            overflow-y: auto;
+            .item{
+              position: relative;
+              cursor: pointer;
+              height: 1.8rem;
+              text-align: center;
+              span{
+                padding: 0.1rem;
+                display: block;
+                transition: all 0.1s linear;
+                color: #90A4AE;
+                line-height: 1.6rem;
+              }
+              .delete{
+                top: 0;
+                position: absolute;
+                right: 10px;
+                background: none!important;
+              }
+            }
+            .item:hover{
+              span{
+                font-size: 1.2rem;
+                background: #ecf0f1;
+                color: #34495e;
+              }
+              .delete:hover{
+                color: #e74c3c;
+              }
+            }
+          }
+          .add-bottom{
+            background: #f5f8f9;
+            cursor: pointer;
+            display: block;
+            color: #7f8c8d;
+            text-align: center;
+            padding: 10px 0;
+          }
+          .add-bottom:hover{
+            background: #ecf0f1;
+            color: #34495e;
+          }
+
+        }
         .fa-plus{
-          transition: all 0.2s linear;
+
           cursor: pointer;
           line-height: 2.4rem;
           width: 3rem;
@@ -270,9 +417,9 @@
       .title{
         margin-bottom: 10px;
       }
-      input,textarea,select {
+      input,textarea,select{
         background: transparent;
-        padding: 10px 0;
+        padding: 10px 4px;
         font-family: auto;
         color: #546E7A;
         transition: all 0.3s linear;

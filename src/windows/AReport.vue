@@ -17,9 +17,9 @@
 
 <script>
 
-  import ADate from '@/components/ADate'
-  import APlane from '@/components/APlane'
-  import ATodo from '@/components/ATodo'
+  import ADate from '@/components/aplane/ADate'
+  import APlane from '@/components/aplane/APlane'
+  import ATodo from '@/components/aplane/ATodo'
   export default {
     components: {
       ADate,

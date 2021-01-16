@@ -216,7 +216,7 @@
     font-size: 0.8rem;
     //height: 400px;
     display: inline-block;
-    background-image: url('../../static/img/date-bg.png');
+    background-image: url('../../../static/img/date-bg.png');
     background-size: auto 100%;
   }
 

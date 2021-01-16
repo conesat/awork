@@ -21,11 +21,11 @@ const state = {
     bgColorStart: '#9d9d9d',
     bgColorEnd: '#9d9d9d',
     bfColor: '#ffffff',
-    themeType:'light',
+    themeType: 'light',
     normalFontColor: '#9d9d9d',
     activeFontColor: '#9d9d9d',
-    openBgLinear:false,
-    openBfLinear:false,
+    openBgLinear: false,
+    openBfLinear: false,
   }
 }
 

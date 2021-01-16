@@ -9,15 +9,9 @@
 
 <script>
 
-  import ADate from '@/components/ADate'
-  import APlane from '@/components/APlane'
-  import ATodo from '@/components/ATodo'
   import AMenu from '@/components/AMenu'
   export default {
     components: {
-      ADate,
-      APlane,
-      ATodo,
       AMenu
     },
     data() {
