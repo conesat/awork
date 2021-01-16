@@ -231,6 +231,7 @@
         this.addWorkForm.id='';
         this.addWorkForm.title='';
         this.addWorkForm.detail='';
+        this.addWorkForm.type='请选择分类';
       },
       edit(index) {
         this.addWorkForm={
