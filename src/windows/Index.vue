@@ -3,7 +3,9 @@
     <div class="menu-left">
       <AMenu></AMenu>
     </div>
-    <router-view style="flex: 1;"/>
+	<keep-alive>
+		<router-view style="flex: 1;"/>
+	</keep-alive>
   </div>
 </template>
 
