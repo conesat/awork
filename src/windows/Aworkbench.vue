@@ -1,33 +1,29 @@
 <template>
   <div class="a-workbench">
-    <div class="right">
-      <div class="top">
-        <img src="../assets/logo.png" height="48px" />
-        <span>今日好句：人生不是止水，总会出现许多出乎意料之事。泰山崩于前而色不变，风波骤起而泰然处之，就显得很重要。转危为安往往需要高超的心智，也需要好的心态。多思索少激动，多仁爱少仇恨，人生才变得更加美丽。</span>
-      </div>
-      <div class="center">
-        <div class="apps">
-          <div class="item" v-for="(app,index) in apps" @click="openApp(app)">
-            <div class="card">
-              <div class="bg" :style="{'background-image': 'url('+app.img+')'}"></div>
-
-              <div class="bottom-info">
-                <span class="title">
-                  {{app.name}}
-                </span>
-                <div class="info">
-                  {{app.info}}
-                </div>
+    <div class="top">
+      <img src="../assets/logo.png" height="48px" />
+      <span>今日好句：人生不是止水，总会出现许多出乎意料之事。泰山崩于前而色不变，风波骤起而泰然处之，就显得很重要。转危为安往往需要高超的心智，也需要好的心态。多思索少激动，多仁爱少仇恨，人生才变得更加美丽。</span>
+    </div>
+    <div class="center">
+      <div class="apps">
+        <div class="item" v-for="(app,index) in apps" @click="openApp(app)">
+          <div class="card">
+            <div class="bg" :style="{'background-image': 'url('+app.img+')'}"></div>
+            <div class="bottom-info">
+              <span class="title">
+                {{app.name}}
+              </span>
+              <div class="info">
+                {{app.info}}
               </div>
             </div>
           </div>
         </div>
-        <div class="list-pop">
+      </div>
+      <div class="list-pop">
 
-        </div>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -50,7 +46,7 @@
       },
       loadApps() {
         var _this = this;
-        
+
       }
     },
     mounted() {
@@ -80,8 +76,8 @@
         line-clamp: 2;
         -webkit-box-orient: vertical;
         margin: 12px 20px;
-        color: #c7dcdc;
-        text-shadow: 1px 1px 0px #d0d0d0;
+        color: #636d6d;
+        text-shadow: 1px 1px 0px rgba(255,255,255,0.2);
       }
     }
 
@@ -95,6 +91,9 @@
   }
 
   .a-workbench {
+    display: flex;
+    flex-direction: column;
+
     .apps {
       padding-top: 30px;
       display: table;
@@ -108,9 +107,10 @@
         display: inline-block;
         height: 10rem;
         width: 25%;
-        padding: 16px;
+        padding: 20px;
         box-sizing: border-box;
-        transition: all 0.2s cubic-bezier(1, -0.7, 0, 2);
+        // transition: all 0.2s cubic-bezier(1, -0.7, 0, 2);
+        transition: all 0.1s ease-in-out;
 
         .card {
           box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
@@ -154,11 +154,11 @@
       }
 
       .item:hover {
-        box-shadow: 0 0 20px rgba(155, 209, 255, 0.5);
         border-radius: 0.4rem;
-        padding: 0;
+        padding: 10px;
 
         .card {
+          box-shadow: 0 0 4px rgba(155, 209, 255, 0.5);
           border-radius: 0.4rem;
 
           .bg {
@@ -171,6 +171,7 @@
           }
 
           .bottom-info {
+            border-radius: 0.4rem;
             height: 100%;
             background: rgba(0, 0, 0, 0.5);
 

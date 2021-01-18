@@ -57,8 +57,8 @@
   } from 'vue-color' //有6中风格，用哪种直接引用对应的名字就行
 
   var lightTheme = {
-    bgColorStart: '#e7e7e7',
-    bgColorEnd: '#e7e7e7',
+    bgColorStart: '#f9f9f9',
+    bgColorEnd: '#f9f9f9',
     bfColor: '#ffffff',
     themeType: 'light',
     normalFontColor: '#9d9d9d',

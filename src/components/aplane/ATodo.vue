@@ -47,7 +47,7 @@
           <span class="fa fa-check" title="添加" @click="addWork()"></span>
         </div>
         <div style="flex: 1;overflow-y: auto;">
-          <input v-model="addWorkForm.title" placeholder="请输入标题,最多20字" class="input-title" />
+          <input v-model="addWorkForm.title" placeholder="请输入标题,可不填" class="input-title" />
           <div class="select-type">
             <!-- <select v-model="addWorkForm.type">
               <option value="" selected="selected">请选择分类</option>
@@ -68,7 +68,7 @@
               <div class="add-bottom" @click.stop="addWorkType()">新建分类</div>
             </div>
           </div>
-          <textarea v-model="addWorkForm.detail" placeholder="请输入内容,最多1000字" maxlength="1000" />
+          <textarea v-model="addWorkForm.detail" placeholder="请输入内容,最多1000字,必填" maxlength="1000" />
           </div>
       </div>
     </div>
@@ -288,10 +288,10 @@
         var _this=this;
         // 查询所有结果集
         db.find({}, function (err, docs) {
-			_this.typeList=docs;
-			if(docs.length==0){
-				_this.addWorkForm.type='';
-			}
+          _this.typeList=docs;
+          if(docs.length==0){
+            _this.addWorkForm.type='';
+          }
         });
       }
     },

@@ -6,8 +6,7 @@
           <img src="../assets/icon/menu/a-menu-home.png" :class="{'active':choiceMenu=='/'}" title="首页" />
         </div>
         <div class="active-app">
-          <div class="item" @click="choiceMenuFun(app.url)" v-for="(app,index) in activeApps"
-            @contextmenu.prevent="showRightMenu($event,index)">
+          <div class="item" @click="choiceMenuFun(app.url)" v-for="(app,index) in activeApps" @contextmenu.prevent="showRightMenu($event,index)">
             <img :src="app.icon" :class="{'active':choiceMenu==app.url||rightMenu.index==index}" :title="app.name" />
           </div>
         </div>
@@ -17,19 +16,19 @@
       </div>
     </div>
     <div class="vpopmenu" v-if="rightMenuStyle.show" :style="{top:rightMenuStyle.top+'px','background':this.$store.state.theme.bfColor}">
-      <div @click="edit(editIndex);" v-if="!this.rightMenu.app.fitMenu">
+      <div @click="appFit();" v-if="!this.rightMenu.app.fitMenu">
         <i class="fa fa-star"></i>
         固定图标
       </div>
-      <div @click="edit(editIndex);" v-if="this.rightMenu.app.fitMenu">
+      <div @click="removeAppFit();" v-if="this.rightMenu.app.fitMenu">
         <i class="fa fa-star-o"></i>
         取消固定
       </div>
-      <div @click="top(editIndex);">
+      <div @click="reloadApp();">
         <i class="fa fa-repeat"></i>
         重新打开
       </div>
-      <div @click="finish(editIndex);">
+      <div @click="closeApp();" v-if="!this.rightMenu.app.fitMenu">
         <i class="fa fa-times"></i>
         关闭
       </div>
@@ -38,6 +37,18 @@
 </template>
 
 <script>
+  // 加载模块
+  const nedb = require('nedb');
+  // 实例化连接对象（不带参数默认为内存数据库）
+  const db = new nedb({
+    filename: '/data/menu.db',
+    autoload: true
+  });
+  // 对索引设置唯一性约束
+  db.ensureIndex({
+    fieldName: 'url',
+    unique: true
+  }, function(err) {});
   import {
     globalBus
   } from '@/assets/js/globalBus.js';
@@ -52,7 +63,7 @@
           show: false,
         },
         rightMenu: {
-          index: '',
+          index: '-1',
           app: {},
         },
       }
@@ -78,6 +89,26 @@
       });
     },
     methods: {
+      closeApp(){
+        var app = this.activeApps[this.rightMenu.index];
+        if(this.choiceMenu==app.url){
+          this.choiceMenu = "/";
+          this.$router.push("/").catch(err => {
+            err
+          })
+        }
+        this.activeApps.splice(this.rightMenu.index,1);
+      },
+      removeAppFit(index) {
+        var app = this.activeApps[this.rightMenu.index];
+        app.fitMenu = false;
+        db.remove({ url: app.url }, {}, (err, ret) => {})
+      },
+      appFit(index) {
+        var app = this.activeApps[this.rightMenu.index];
+        app.fitMenu = true;
+        db.insert(app, (err, ret) => {})
+      },
       choiceMenuFun(url) {
         this.rightMenu.index = "-1";
         this.choiceMenu = url;
@@ -103,8 +134,13 @@
       },
     },
     mounted() {
+      var _this = this;
       this.choiceMenu = this.$route.path
       window.addEventListener("click", this.clickOther);
+
+      db.find({}, function(err, docs) {
+        _this.activeApps = docs;
+      });
     }
   }
 </script>
