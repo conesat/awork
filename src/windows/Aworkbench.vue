@@ -35,31 +35,26 @@
   import {
     globalBus
   } from '@/assets/js/globalBus.js';
+  import {
+    apps
+  } from '../common/Apps.js';
   export default {
     data() {
       return {
-        apps: [{
-          name: '计划',
-          img: './static/img/apps/aplane.png',
-          icon: './static/img/apps/aplane_icon.png',
-          info: '工作安排，周报日报',
-          url: '/aReport',
-          type: 'app'
-        }, {
-          name: 'Url转Json',
-          img: './static/img/apps/urlToJson.png',
-		  icon: './static/img/apps/aplane_icon.png',
-          info: '编码后的Url直接转换Json'
-        }]
+        apps: apps
       }
     },
     methods: {
       openApp(app) {
         globalBus.$emit('openApp', app);
+      },
+      loadApps() {
+        var _this = this;
+        
       }
     },
     mounted() {
-
+      this.loadApps();
     }
   }
 </script>
@@ -85,7 +80,8 @@
         line-clamp: 2;
         -webkit-box-orient: vertical;
         margin: 12px 20px;
-        color: #95a5a6;
+        color: #c7dcdc;
+        text-shadow: 1px 1px 0px #d0d0d0;
       }
     }
 

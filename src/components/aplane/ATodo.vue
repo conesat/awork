@@ -1,75 +1,75 @@
 <!-- 待完成 -->
 <template>
-	<div class="a-todo" :style="{'background':this.$store.state.theme.bfColor}">
-		<div class="list" :style="{'width':showAdd?'0':'100%'}">
-			<div style="width: 252px;height: 100%;">
-				<div style="width: 100%;display: flex;flex-direction: column;height: 100%;overflow: hidden;">
-					<div class="title" style="position: relative;">
-						<span class="fa fa-plus" title="新建任务" @click="add()"></span>
-						代办事项
-					</div>
-					<div class="list">
-						<div v-if="list.length==0" class="no-todo">
-							暂无任务，<span @click.stop="add()">新建一个</span> 吧
-						</div>
-						<div class="item" :class="{'on-edit':editIndex==index}" v-for="(item,index) in list" @contextmenu.prevent="showRightMenu($event,index)">
-							<span class="item-title" :title="item.title" @click="edit(index)">{{item.title}}</span>
-							<span class="fa fa-check" title="完成任务"></span>
-							<span class="fa fa-trash" title="删除任务" @click="remove(index)"></span>
-						</div>
-					</div>
-					<div class="vpopmenu" v-if="rightMenuStyle.show" :style="{left:rightMenuStyle.left+'px',top:rightMenuStyle.top+'px'}">
-						<div @click="edit(editIndex);">
-							<i class="fa fa-pencil"></i>
-							编辑
-						</div>
-						<div @click.stop="top(editIndex);">
-							<i class="fa fa-arrow-up"></i>
-							置顶
-						</div>
-						<div @click.stop="finish(editIndex);">
-							<i class="fa fa-check"></i>
-							完成
-						</div>
-						<div class="delete" @click.stop="remove(editIndex);">
-							<i class="fa fa-trash"></i>
-							删除
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="add-pane" :style="{'width':showAdd?'100%':'0'}">
-			<div style="width: 252px;display: flex;flex-direction: column;height: 100%;">
-				<div class="title" style="position: relative;">
-					<span class="fa fa-arrow-left" title="新建任务" @click="closeAdd()"></span>
-					新建任务
-					<span class="fa fa-check" title="添加" @click="addWork()"></span>
-				</div>
-				<div style="flex: 1;overflow-y: auto;">
-					<input v-model="addWorkForm.title" placeholder="请输入标题,最多20字" class="input-title" />
-					<div class="select-type">
-						<!-- <select v-model="addWorkForm.type">
+  <div class="a-todo" :style="{'background':this.$store.state.theme.bfColor}">
+    <div class="list" :style="{'width':showAdd?'0':'100%'}">
+      <div style="width: 252px;height: 100%;">
+        <div style="width: 100%;display: flex;flex-direction: column;height: 100%;overflow: hidden;">
+          <div class="title" style="position: relative;">
+            <span class="fa fa-plus" title="新建任务" @click="add()"></span>
+            代办事项
+          </div>
+          <div class="list">
+            <div v-if="list.length==0" class="no-todo">
+              暂无任务，<span @click.stop="add()">新建一个</span> 吧
+            </div>
+            <div class="item" :class="{'on-edit':editIndex==index}" v-for="(item,index) in list" @contextmenu.prevent="showRightMenu($event,index)">
+              <span class="item-title" :title="item.title" @click="edit(index)">{{item.title}}</span>
+              <span class="fa fa-check" title="完成任务"></span>
+              <span class="fa fa-trash" title="删除任务" @click="remove(index)"></span>
+            </div>
+          </div>
+          <div class="vpopmenu" v-if="rightMenuStyle.show" :style="{left:rightMenuStyle.left+'px',top:rightMenuStyle.top+'px'}">
+            <div @click="edit(editIndex);">
+              <i class="fa fa-pencil"></i>
+              编辑
+            </div>
+            <div @click.stop="top(editIndex);">
+              <i class="fa fa-arrow-up"></i>
+              置顶
+            </div>
+            <div @click.stop="finish(editIndex);">
+              <i class="fa fa-check"></i>
+              完成
+            </div>
+            <div class="delete" @click.stop="remove(editIndex);">
+              <i class="fa fa-trash"></i>
+              删除
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="add-pane" :style="{'width':showAdd?'100%':'0'}">
+      <div style="width: 252px;display: flex;flex-direction: column;height: 100%;">
+        <div class="title" style="position: relative;">
+          <span class="fa fa-arrow-left" title="新建任务" @click="closeAdd()"></span>
+          新建任务
+          <span class="fa fa-check" title="添加" @click="addWork()"></span>
+        </div>
+        <div style="flex: 1;overflow-y: auto;">
+          <input v-model="addWorkForm.title" placeholder="请输入标题,最多20字" class="input-title" />
+          <div class="select-type">
+            <!-- <select v-model="addWorkForm.type">
               <option value="" selected="selected">请选择分类</option>
               <option value="1" v-for="(type,index) in typeList"></option>
             </select> -->
-						<div class="input-div" @click.stop="showTypeSelectFun">
-							<span class="text" v-if="addWorkForm.type==''">请选择分类</span>
-							<span class="text" v-if="addWorkForm.type!=''" v-html="addWorkForm.type"></span>
-							<span class="fa fa-angle-down"></span>
-						</div>
-						<div class="type-select" v-show="showTypeSelect">
-							<div class="items">
-								<div class="item" v-for="(type,index) in typeList">
-									<span @click="selectWorkType(type)">{{type.name}}</span>
-									<span class="fa fa-trash delete" title="删除" @click.stop="removeWorkType(type)"></span>
-								</div>
-							</div>
-							<div class="add-bottom" @click.stop="addWorkType()">新建分类</div>
-						</div>
-					</div>
-					<textarea v-model="addWorkForm.detail" placeholder="请输入内容,最多1000字" maxlength="1000" />
-					</div>
+            <div class="input-div" @click.stop="showTypeSelectFun">
+              <span class="text" v-if="addWorkForm.type==''">请选择分类</span>
+              <span class="text" v-if="addWorkForm.type!=''" v-html="addWorkForm.type"></span>
+              <span class="fa fa-angle-down"></span>
+            </div>
+            <div class="type-select" v-show="showTypeSelect">
+              <div class="items">
+                <div class="item" v-for="(type,index) in typeList">
+                  <span @click="selectWorkType(type)">{{type.name}}</span>
+                  <span class="fa fa-trash delete" title="删除" @click.stop="removeWorkType(type)"></span>
+                </div>
+              </div>
+              <div class="add-bottom" @click.stop="addWorkType()">新建分类</div>
+            </div>
+          </div>
+          <textarea v-model="addWorkForm.detail" placeholder="请输入内容,最多1000字" maxlength="1000" />
+          </div>
       </div>
     </div>
    <script type="text/html" id="swalHtml">

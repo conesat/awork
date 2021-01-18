@@ -3,7 +3,7 @@
     <div class="title">主题风格</div>
     <div class="item">
       <label>内置风格：</label>
-      <select class="input" v-model="themeType" @change="changeThemeType(themeType)" >
+      <select class="input" v-model="themeType" @change="changeThemeType(themeType)">
         <option value="light">
           亮色
         </option>
@@ -55,6 +55,27 @@
   import {
     Chrome
   } from 'vue-color' //有6中风格，用哪种直接引用对应的名字就行
+
+  var lightTheme = {
+    bgColorStart: '#e7e7e7',
+    bgColorEnd: '#e7e7e7',
+    bfColor: '#ffffff',
+    themeType: 'light',
+    normalFontColor: '#9d9d9d',
+    activeFontColor: '#9d9d9d',
+    openBgLinear: false,
+  }
+
+  var nigthTheme = {
+    bgColorStart: '#000735',
+    bgColorEnd: '#1d1e31',
+    bfColor: '#ffffff',
+    themeType: 'light',
+    normalFontColor: '#9d9d9d',
+    activeFontColor: '#9d9d9d',
+    openBgLinear: true,
+  }
+
   export default {
     components: {
       'color-picker': Chrome
@@ -86,15 +107,19 @@
     },
     methods: {
       changeThemeType(e) {
-        this.theme.themeType = e;
-        this.updeteTheme();
+        if (e == 'light') {
+          this.theme = lightTheme;
+        } else if (e == 'night') {
+          this.theme = nigthTheme;
+        }
+        this.updeteTheme("noSelft");
       },
       changeBgLinearSwitch(e) {
         this.theme.openBgLinear = e;
         if (!e) {
           this.theme.bgColorEnd = color;
         }
-        this.updeteTheme();
+        this.updeteTheme("selft");
       },
       clickOther(e) {
         if (e.srcElement.className.indexOf('vc-') >= 0) {
@@ -126,9 +151,13 @@
             this.theme.bfColor = color;
             break;
         }
-        this.updeteTheme();
+        this.updeteTheme("selft");
       },
-      updeteTheme() {
+      updeteTheme(selft) {
+        if (selft == 'selft') {
+          this.themeType = "self";
+          this.theme.type = "self";
+        }
         this.$store.commit({
           type: 'setTheme',
           theme: this.theme

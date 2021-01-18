@@ -22,6 +22,14 @@ export default new Router({
 				component: () => import("@/windows/AReport")
 			},
 			{
+				path: 'urlToJson',
+				name: 'urlToJson',
+				meta: {
+					keepAlive: true, //此组件需要被缓存
+				},
+				component: () => import("@/apps/UrlToJson/AppIndex")
+			},
+			{
 				path: 'setting',
 				name: 'setting',
 				component: () => import("@/windows/Setting"),
