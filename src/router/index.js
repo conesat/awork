@@ -13,9 +13,17 @@ export default new Router({
 				name: '/',
 				component: () => import("@/windows/AworkBench"),
 			},
+      {
+      	path: 'reload',
+      	name: 'reload',
+      	meta: {
+      		keepAlive: true, //此组件需要被缓存
+      	},
+      	component: () => import("@/windows/Reload")
+      },
 			{
 				path: 'aReport',
-				name: 'AReport',
+				name: 'aReport',
 				meta: {
 					keepAlive: true, //此组件需要被缓存
 				},

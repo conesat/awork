@@ -5,6 +5,22 @@
 </template>
 
 <script>
+  export default {
+    name:'urlToJson',
+    components: {
+    },
+    data() {
+      return {
+  
+      }
+    },
+    methods: {
+  
+    },
+    mounted() {
+  
+    }
+  }
 </script>
 
 <style>

@@ -24,15 +24,18 @@
       </div>
       <div class="date-day">
         <div :class="{'active-week':indexDay==chioceWeek}" class="date-day-line" v-for="(item,indexDay) in day" :index='indexDay'>
-          <span @click="choiceDateFun($event,index)" :class="{'now':item.type == 'now','active':item.year==chioceYear&&item.moth==chioceMoth&&item.date==chioceDate}"
+          <span @click="choiceDateFun($event,index)" :class="{'now':item.type == 'now',
+          'active':item.year==chioceYear&&item.moth==chioceMoth&&item.date==chioceDate,
+          'today':item.year==today.year&&item.moth==today.moth&&item.date==today.date}"
             v-for="(item,index) in date" v-if="index<7*(indexDay+1)&&index>=7*indexDay">
             {{item.date}}
-            <div class="tag"></div>
+            <!-- <div class="tag" v-if="item.year==today.year&&item.moth==today.moth&&item.date==today.date"></div> -->
           </span>
         </div>
       </div>
       <div class="bottm-title">
         Alife - Awork
+        <div class="today" @click="toToday()">今</div>
       </div>
     </div>
   </div>
@@ -63,29 +66,80 @@
         //Aplane 交互
         aPlane: {
           changeShowType: 'moth',
+        },
+        //今天日期
+        today:{
+          year:'',
+          moth:'',
+          date:''
         }
       }
     },
     created() {
+      var _this = this;
       globalBus.$on('aDate_getDateList', (type) => {
-        this.aPlane.changeShowType=type;
+        this.aPlane.changeShowType = type;
         return this.getDateList(type);
+      });
+      globalBus.$on('aDate_getDate', (type) => {
+        globalBus.$emit('aDate_changeDateBack', {
+          year: _this.chioceYear,
+          moth: _this.chioceMoth,
+          date: _this.chioceDate,
+          week: _this.chioceWeek,
+        });
       });
     },
     methods: {
+      //回到当天
+      toToday() {
+        var _this=this;
+        this.pickerDate = new Date();
+        this.chioceYear = this.pickerDate.getFullYear();
+        this.chioceMoth = this.pickerDate.getMonth();
+        this.chioceDate = this.pickerDate.getDate();
+        this.initDate();
+        this.initDay();
+        this.today={
+          year:this.chioceYear,
+          moth:this.chioceMoth,
+          date:this.chioceDate
+        }
+        globalBus.$emit('aDate_changeDateBack', {
+          year: _this.chioceYear,
+          moth: _this.chioceMoth,
+          date: _this.chioceDate,
+          week: _this.chioceWeek,
+        });
+        this.getDateList(this.aPlane.changeShowType);
+      },
       getDateList(type) {
+        var _this = this;
         if (type == 'moth') {
           globalBus.$emit('aPlane_changeShowTypeBack', {
-            year:this.chioceYear,
-            moth:this.chioceMoth
+            year: this.chioceYear,
+            moth: this.chioceMoth,
+            date: this.chioceDate
           });
         } else {
-          if(this.chioceWeek==-1){
+          if (this.chioceWeek == -1) {
             return;
           }
-          var res = this.date.slice(7 * this.chioceWeek, 7 * (this.chioceWeek + 1));
-          globalBus.$emit('aPlane_changeShowTypeBack', res);
+          var res = this.date.slice(7 * this.chioceWeek, 7 * (parseInt(this.chioceWeek) + 1));
+          globalBus.$emit('aPlane_changeShowTypeBack', {
+            year: this.chioceYear,
+            moth: this.chioceMoth,
+            date: this.chioceDate,
+            dates: res
+          });
         }
+
+        globalBus.$emit('aDate_changeDateBack', {
+          year: _this.chioceYear,
+          moth: _this.chioceMoth,
+          date: _this.chioceDate,
+          week: _this.chioceWeek,
+        });
       },
       choiceDateFun(e, index) {
         var parent = e.currentTarget.parentElement;
@@ -192,6 +246,7 @@
       },
       //初始化周
       initDay() {
+        this.day.splice(0,this.day.length)
         for (var x = 0; x < 6; x++) {
           this.day.push({
             index: x,
@@ -201,12 +256,7 @@
       }
     },
     mounted() {
-      this.pickerDate = new Date();
-      this.chioceYear = this.pickerDate.getFullYear();
-      this.chioceMoth = this.pickerDate.getMonth();
-      this.chioceDate = this.pickerDate.getDate();
-      this.initDate();
-      this.initDay();
+      this.toToday();
     }
   }
 </script>
@@ -259,11 +309,33 @@
 
   .a-date .date {
     .bottm-title {
+      position: relative;
       width: 100%;
       text-align: center;
       line-height: 2rem;
       font-weight: bold;
       color: #9FA8DA;
+
+      .today {
+        position: absolute;
+        top: 6px;
+        right: 10px;
+        border: 1px #dcdcdc solid;
+        border-radius: 20px;
+        height: 1.2rem;
+        width: 1.2rem;
+        line-height: 1.2rem;
+        color: #dcdcdc;
+        font-size: 0.6rem;
+        cursor: pointer;
+        transition: all 0.2s linear;
+      }
+
+      .today:hover {
+        border: 1px #FFFFFF solid;
+        background: #FFFFFF;
+        color: #6DC9FF;
+      }
     }
 
     .date-title {
@@ -280,6 +352,11 @@
     .date-day .date-day-line {
       color: #B0BEC5;
       transition: all 0.3s linear;
+      .today{
+        background: #59a4d0;
+        border-radius: 50%;
+        color: #FFFFFF;
+      }
     }
 
     .date-day .date-day-line:hover,
@@ -296,7 +373,7 @@
       width: 4px;
       height: 4px;
       border-radius: 4px;
-      background-color: #26C6DA;
+      background-color: #8bffff;
       position: relative;
       left: 1.5rem;
       bottom: 1.7rem;
@@ -323,4 +400,6 @@
     border-radius: 50%;
     color: #FFFFFF;
   }
+
+
 </style>

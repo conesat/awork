@@ -9,16 +9,16 @@
       </div>
       <div class="tools">
         <span class="item">
-          <i class="fa fa-file-text-o" aria-hidden="true"></i>
-          <div>复制日报</div>
+          <i class="fa fa-file-text-o" aria-hidden="true" title="复制日报"></i>
+          <div></div>
         </span>
         <span class="item">
-          <i class="fa fa-file-word-o" aria-hidden="true"></i>
-          <div>复制周报</div>
+          <i class="fa fa-file-word-o" aria-hidden="true" title="复制周报"></i>
+          <div></div>
         </span>
         <span class="item">
-          <i class="fa fa-envelope-o" aria-hidden="true"></i>
-          <div>发送周报</div>
+          <i class="fa fa-envelope-o" aria-hidden="true" title="发送周报"></i>
+          <div></div>
         </span>
         <span class="item">
           <i class="fa fa-refresh" aria-hidden="true" @click="reloadTable()" title="重置表格"></i>
@@ -38,13 +38,13 @@
         <tbody>
           <tr v-for="(item,index) in works">
             <td>
-              <div class="work-item-type">
-                {{works[index].name}}
+              <div class="work-item-type" style="white-space: nowrap;">
+                {{works[index].type}}
               </div>
             </td>
             <td v-for="(work,wIndex) in works[index].data">
-              <div class="work-item">
-                123
+              <div class="work-item" v-for="(detail,dIndex) in work">
+                {{detail.title}}
               </div>
             </td>
           </tr>
@@ -55,6 +55,11 @@
 </template>
 
 <script>
+  const nedb = require('nedb');
+  const aplaneTypeDb = new nedb({
+    filename: '/data/aplane-type.db',
+    autoload: true
+  });
   import {
     globalBus
   } from '@/assets/js/globalBus.js';
@@ -64,17 +69,27 @@
     },
     data() {
       return {
+        //任务数据库
+        aplaneTodoDb: undefined,
+        //当前加载的数据库
+        startLoadDate: {
+          year: '',
+          moth: '',
+          date: '',
+          week: ''
+        },
+        //当前加载的数据库
+        endLoadDate: {
+          year: '',
+          moth: '',
+          date: '',
+          week: ''
+        },
         showType: 'moth',
         dates: [],
-        works: [{
-          name: '第三方',
-          data: [
-            "工作内容", "工作内容", "工作内容", "工作内容", "工作内容",
-            "工作内容", "工作内容", "工作内容", "工作内容", "工作内容",
-            "工作内容", "工作内容", "工作内容", "工作内容", "工作内容",
-            "工作内容", "工作内容", "工作内容", "工作内容", "工作内容"
-          ]
-        }],
+        works: [],
+        typeListMap: new Map(),
+        typeDate: {},
         //table的移动缩放
         positionX: 0,
         positionY: 0,
@@ -85,9 +100,12 @@
       globalBus.$on('aPlane_changeShowTypeBack', (res) => {
         return this.changeShowTypeBack(res);
       });
+      globalBus.$on('aPlane_reload', (res) => {
+        return this.changeShowTypeBack(res);
+      });
     },
     methods: {
-      reloadTable(){
+      reloadTable() {
         this.positionX = 0;
         this.positionY = 0;
         this.tableScale = 1;
@@ -113,34 +131,113 @@
         };
       },
       changeShowTypeBack(res) {
+        var _this = this;
         this.dates.splice(0, this.dates.length)
+        _this.works.splice(0, _this.works.length);
+        _this.typeListMap.forEach(function(value, key) {
+          value.splice(0, value.length);
+        });
         var start = false;
         if (this.showType == 'moth') {
+          if (_this.startLoadDate.year + "-" + _this.startLoadDate.moth != res.year + "-" + res.moth &&
+            _this.endLoadDate.year + "-" + _this.endLoadDate.moth != res.year + "-" + res.moth) {
+            _this.aplaneTodoDb = new nedb({
+              filename: '/data/aplane-todo_' + res.year + '-' + res.moth + '.db',
+              autoload: true
+            });
+          }
+          _this.startLoadDate = res;
+          _this.endLoadDate = res;
           var monthEndDate = new Date(res.year, res.moth + 1, 0).getDate();
           for (var x = 1; x < monthEndDate; x++) {
-            this.dates.push({
+            _this.dates.push({
               year: res.year,
               moth: res.moth,
               date: x
             });
+            (function(x) {
+              _this.findAndAddPlane({
+                year: res.year,
+                moth: res.moth,
+                date: x
+              });
+            })(x)
           }
-        } else {
-          for (var x = 0; x < res.length; x++) {
+        } else if(res.dates&&res.dates.length>0){
+          var startDate = res.dates[0];
+          var endDate = res.dates[res.dates.length - 1];
+          //判断这个周是否横跨两个月
+          if (startDate.moth == endDate.moth) {
+            //进入这里说明没有横跨两个月  然后判断是否需要重新加载数据库   避免重复载入先判断和上次加载是否一样
+            if (_this.startLoadDate.year + "-" + _this.startLoadDate.moth != startDate.year + "-" + startDate.moth &&
+              _this.endLoadDate.year + "-" + _this.endLoadDate.moth != startDate.year + "-" + startDate.moth) {
+              _this.aplaneTodoDb = new nedb({
+                filename: '/data/aplane-todo_' + startDate.year + '-' + startDate.moth + '.db',
+                autoload: true
+              });
+              _this.startLoadDate = startDate;
+            }
+
+          }
+          for (var x = 0; x < res.dates.length; x++) {
             this.dates.push({
-              year: res[x].year,
-              moth: res[x].moth,
-              date: res[x].date
+              year: res.dates[x].year,
+              moth: res.dates[x].moth,
+              date: res.dates[x].date
             });
+            (function(x) {
+              _this.findAndAddPlane({
+                year: res.dates[x].year,
+                moth: res.dates[x].moth,
+                date: res.dates[x].date
+              });
+            })(x)
           }
         }
+        _this.typeListMap.forEach(function(value, key) {
+          _this.works.push({
+            type: key,
+            data: value
+          });
+        });
+      },
+      findAndAddPlane(res) {
+        var _this = this;
+        // 查询所有结果集
+        _this.aplaneTodoDb.find({
+          year: res.year,
+          moth: res.moth,
+          date: res.date
+        }, function(err, docs) {
+          _this.typeListMap.forEach(function(value, key) {
+            value.push([])
+          });
+          for (var x in docs) {
+            var type = docs[x].type ? docs[x].type : '未分类';
+            var data = _this.typeListMap.get(type);
+            data[data.length - 1].push(docs[x]);
+          }
+        });
       },
       changeShowType(type) {
         this.showType = type;
         globalBus.$emit('aDate_getDateList', type);
+        this.reloadTable();
+      },
+      loadTypes() {
+        var _this = this;
+        _this.typeListMap.set('未分类', []);
+        // 查询所有结果集
+        aplaneTypeDb.find({}, function(err, docs) {
+          for (var x in docs) {
+            _this.typeListMap.set(docs[x].name, []);
+          }
+          _this.changeShowType('moth');
+        });
       }
     },
     mounted() {
-      this.changeShowType('moth');
+      this.loadTypes();
       var _this = this;
       this.$nextTick(function() {
         var scrollFunc = function(e) {
@@ -153,9 +250,9 @@
               _this.tableScale += 0.1;
             }
             if (e.wheelDelta < 0) { //当滑轮向下滚动时
-            if (_this.tableScale < 0.6) {
-              return;
-            }
+              if (_this.tableScale < 0.6) {
+                return;
+              }
               _this.tableScale -= 0.1;
             }
           } else if (e.detail) { //Firefox滑轮事件
@@ -175,7 +272,7 @@
         };
         //给页面绑定滑轮滚动事件
         if (this.$refs.table.addEventListener) {
-           this.$refs.table.onmousewheel  = scrollFunc;
+          this.$refs.table.onmousewheel = scrollFunc;
         }
         //滚动滑轮触发scrollFunc方法
 
@@ -274,14 +371,14 @@
         padding: 10px 0;
         color: #607D8B;
         text-align: left;
-        border: 1px solid #ECEFF1;
+        border: 1px solid rgba(#ECEFF1,0.6);
       }
 
     }
 
     .top {
       padding-bottom: 10px;
-      border-bottom: 1px #ECEFF1 solid;
+      border-bottom: 1px rgba(#ECEFF1,0.6) solid;
       display: flex;
       color: #90A4AE;
 
@@ -311,7 +408,7 @@
           color: #1E88E5;
 
           div {
-            width: 3.2rem;
+            //width: 3.2rem;
           }
         }
       }

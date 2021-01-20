@@ -11,7 +11,7 @@
             <div class="bg" :style="{'background-image': 'url('+app.img+')'}"></div>
             <div class="bottom-info">
               <span class="title">
-                {{app.name}}
+                {{app.title}}
               </span>
               <div class="info">
                 {{app.info}}

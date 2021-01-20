@@ -47,12 +47,8 @@
           <span class="fa fa-check" title="添加" @click="addWork()"></span>
         </div>
         <div style="flex: 1;overflow-y: auto;">
-          <input v-model="addWorkForm.title" placeholder="请输入标题,可不填" class="input-title" />
+          <input v-model="addWorkForm.title" placeholder="请输入标题,最多20字" class="input-title" maxlength="20"/>
           <div class="select-type">
-            <!-- <select v-model="addWorkForm.type">
-              <option value="" selected="selected">请选择分类</option>
-              <option value="1" v-for="(type,index) in typeList"></option>
-            </select> -->
             <div class="input-div" @click.stop="showTypeSelectFun">
               <span class="text" v-if="addWorkForm.type==''">请选择分类</span>
               <span class="text" v-if="addWorkForm.type!=''" v-html="addWorkForm.type"></span>
@@ -84,17 +80,21 @@
 <script>
   // 加载模块
   const nedb = require('nedb');
-  // 实例化连接对象（不带参数默认为内存数据库）
-  const db = new nedb({
+  const aplaneTypeDb = new nedb({
     filename: '/data/aplane-type.db',
     autoload: true
   });
+  import {
+    globalBus
+  } from '@/assets/js/globalBus.js';
   import Swal from 'sweetalert2'
   export default {
     name: 'ATodo',
     components: {},
     data() {
       return {
+        //任务数据库
+        aplaneTodoDb:undefined,
         typeList:[],
         list: [],
         editIndex: -1,
@@ -107,14 +107,28 @@
         showAddType:false,
         addWorkForm:{
           index:'',
-          id:'',
+          _id:'',
           title:'',
           detail:'',
           status:'',
           type:''
         },
         showTypeSelect:false,
+        //当前加载的数据库
+        loadDate:{
+          year:'',
+          moth:'',
+          date:'',
+          week:''
+        }
       }
+    },
+    created() {
+      var _this=this;
+      //获取日期后回调这里
+      globalBus.$on('aDate_changeDateBack', (date) => {
+        _this.loadTodo(date);
+      });
     },
     methods: {
       remove(index) {
@@ -152,44 +166,44 @@
           cancelButtonText: `取消`,
         }).then((result) => {
           if (result.isDenied) {
-            db.remove({ _id: type._id }, {}, function (err, numRemoved) {
+            aplaneTypeDb.remove({ _id: type._id }, {}, function (err, numRemoved) {
                 _this.loadTypes();
             });
-			if(type.name==_this.addWorkForm.type){
-				_this.addWorkForm.type='';
-			}
+          if(type.name==_this.addWorkForm.type){
+            _this.addWorkForm.type='';
+          }
           }
         })
       },
-	  saveWorkType(name){
-		  var _this=this;
-		  db.find({name: name}, function (err, docs) {
-		  	if(docs.length==0){
-				// 插入单项
-				db.insert({
-				  name: name
-				}, (err, ret) => {
-				  if(ret){
-				    Swal.fire({
-				      title: `已添加`,
-				      icon: 'success'
-				    })
-				    _this.loadTypes();
-				  }else{
-				    Swal.fire({
-				      title: `添加失败`,
-				      icon: 'error'
-				    })
-				  }
-				});
-		  	}else{
-				Swal.fire({
-				  title: `该类型已存在`,
-				  icon: 'error'
-				})
-			}
-		  });
-	  },
+      saveWorkType(name){
+        var _this=this;
+        aplaneTypeDb.find({name: name}, function (err, docs) {
+          if(docs.length==0){
+            // 插入单项
+            aplaneTypeDb.insert({
+              name: name
+            }, (err, ret) => {
+              if(ret){
+                Swal.fire({
+                  title: `已添加`,
+                  icon: 'success'
+                })
+                _this.loadTypes();
+              }else{
+                Swal.fire({
+                  title: `添加失败`,
+                  icon: 'error'
+                })
+              }
+            });
+          }else{
+            Swal.fire({
+              title: `该类型已存在`,
+              icon: 'error'
+            })
+          }
+        });
+      },
       addWorkType(){
         Swal.fire({
           input: 'text',
@@ -203,48 +217,56 @@
           }
           ).then((result) => {
             if (result.isConfirmed&&result.value) {
-				this.saveWorkType(result.value);
+              this.saveWorkType(result.value);
             }
         })
-
       },
       addWork(){
+        var _this=this;
         this.addWorkForm.title=this.addWorkForm.title.trim();
         this.addWorkForm.detail=this.addWorkForm.detail.trim();
-        if(!this.addWorkForm.detail){
-          alert("内容不能为空！")
+        if(!this.addWorkForm.title){
+          alert("标题不能为空！")
         }else{
-          if(!this.addWorkForm.title){
-            this.addWorkForm.title=this.addWorkForm.detail.substring(0,10)
-          }
-          if(this.addWorkForm.index+"x" == 'x'){
-            this.list.push({
-              title:this.addWorkForm.title,
-              detail:this.addWorkForm.detail,
-              type:this.addWorkForm.type,
-              status:this.addWorkForm.status,
-            })
+          if(!this.addWorkForm._id){
+            // 插入单项
+            _this.aplaneTodoDb.insert({
+              year:_this.loadDate.year,
+              moth:_this.loadDate.moth,
+              date:_this.loadDate.date,
+              title:_this.addWorkForm.title,
+              detail:_this.addWorkForm.detail,
+              status:'0',
+              type:_this.addWorkForm.type,
+            }, (err, ret) => {
+              _this.list.push(ret)
+              _this.closeAdd();
+            });
           }else {
-            this.list.splice(this.addWorkForm.index,1,{
-              title:this.addWorkForm.title,
-              detail:this.addWorkForm.detail,
-              type:this.addWorkForm.type,
-              status:this.addWorkForm.status,
-            })
+            var newItem = {
+              _id: this.addWorkForm._id,
+              title:_this.addWorkForm.title,
+              detail:_this.addWorkForm.detail,
+              status:'0',
+              type:_this.addWorkForm.type,
+              year:_this.loadDate.year,
+              moth:_this.loadDate.moth,
+              date:_this.loadDate.date,
+            }
+            // 插入单项
+            _this.aplaneTodoDb.update({
+              _id: this.addWorkForm._id
+            },newItem, {}, (err, ret) => {
+              _this.list.splice(_this.addWorkForm.index,1,newItem)
+              _this.closeAdd();
+            });
           }
-          this.showAdd = false;
-          this.addWorkForm.index='';
-          this.addWorkForm.id='';
-          this.addWorkForm.title='';
-          this.addWorkForm.detail='';
-          this.addWorkForm.type='';
         }
-
       },
       closeAdd(){
         this.showAdd = false;
         this.addWorkForm.index='';
-        this.addWorkForm.id='';
+        this.addWorkForm._id='';
         this.addWorkForm.title='';
         this.addWorkForm.detail='';
         this.addWorkForm.type='';
@@ -252,19 +274,13 @@
       edit(index) {
         this.addWorkForm={
           index:index,
-          id:this.list[index].id,
+          _id:this.list[index]._id,
           title:this.list[index].title,
           detail:this.list[index].detail,
           status:this.list[index].status,
           type:this.list[index].type
         };
         this.showAdd = true;
-      },
-      top(index) {
-
-      },
-      finish(index) {
-
       },
       showRightMenu(e, index) {
         this.editIndex = index;
@@ -287,11 +303,30 @@
       loadTypes(){
         var _this=this;
         // 查询所有结果集
-        db.find({}, function (err, docs) {
+        aplaneTypeDb.find({}, function (err, docs) {
           _this.typeList=docs;
           if(docs.length==0){
             _this.addWorkForm.type='';
           }
+        });
+      },
+      //加载任务  一个月一个库
+      loadTodo(date){
+        var _this=this;
+        if(_this.loadDate.year+"-"+_this.loadDate.moth!=date.year+"-"+date.moth){
+          _this.aplaneTodoDb = new nedb({
+            filename: '/data/aplane-todo_'+date.year+'-'+date.moth+'.db',
+            autoload: true
+          });
+        }
+        _this.loadDate=date;
+        // 查询所有结果集
+        _this.aplaneTodoDb.find({
+          year:_this.loadDate.year,
+          moth:_this.loadDate.moth,
+          date:_this.loadDate.date
+        }, function (err, docs) {
+          _this.list=docs;
         });
       }
     },
@@ -364,7 +399,7 @@
           position: absolute;
           width: 100%;
           max-height: 200px;
-		  margin-bottom: 10px;
+          margin-bottom: 10px;
           background: #fff;
           top: 44px;
           box-shadow: 0 2px 4px #6c6c6c;

@@ -21,6 +21,7 @@
   import APlane from '@/components/aplane/APlane'
   import ATodo from '@/components/aplane/ATodo'
   export default {
+    name:'aReport',
     components: {
       ADate,
       APlane,

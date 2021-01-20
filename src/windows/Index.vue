@@ -3,14 +3,13 @@
     <div class="menu-left">
       <AMenu></AMenu>
     </div>
-	<keep-alive>
-		<router-view style="flex: 1;"/>
-	</keep-alive>
+    <keep-alive :exclude="noCatchArr">
+      <router-view style="flex: 1;"/>
+    </keep-alive>
   </div>
 </template>
 
 <script>
-
   import AMenu from '@/components/AMenu'
   export default {
     components: {
@@ -18,7 +17,7 @@
     },
     data() {
       return {
-
+        noCatchArr: this.$store.state.noCatchArr
       }
     },
     methods: {
@@ -26,6 +25,16 @@
     },
     mounted() {
 
+    },
+    watch: {
+      $route: {
+        //监听路由变化
+        handler: function(to, from) {
+          console.log(to)
+          console.log(from)
+          this.noCatchArr = this.$store.state.noCatchArr;
+        }
+      }
     }
   }
 </script>

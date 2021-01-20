@@ -19,7 +19,7 @@
 
 <script>
   var ipcRenderer;
-  if(window.require){
+  if (window.require) {
     ipcRenderer = window.require('electron').ipcRenderer;
   }
   export default {
@@ -28,6 +28,11 @@
       return {
         maxRes: 'fa-window-restore',
         showBar: false,
+      }
+    },
+    provide(){
+      return{
+        reload:this.reload
       }
     },
     mounted() {

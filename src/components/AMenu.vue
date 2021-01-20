@@ -2,15 +2,16 @@
   <div class="a-menu">
     <div class="menus-table">
       <div class="menus" :style="{'background':this.$store.state.theme.bfColor}">
-        <div class="item home" @click="choiceMenuFun('/')">
+        <div class="item home" @click="choiceMenuFun('/','home')">
           <img src="../assets/icon/menu/a-menu-home.png" :class="{'active':choiceMenu=='/'}" title="首页" />
         </div>
         <div class="active-app">
-          <div class="item" @click="choiceMenuFun(app.url)" v-for="(app,index) in activeApps" @contextmenu.prevent="showRightMenu($event,index)">
-            <img :src="app.icon" :class="{'active':choiceMenu==app.url||rightMenu.index==index}" :title="app.name" />
+          <div class="item" @click="choiceMenuFun(app.url,app.name)" v-for="(app,index) in activeApps"
+            @contextmenu.prevent="showRightMenu($event,index)">
+            <img :src="app.icon" :class="{'active':choiceMenu==app.url||rightMenu.index==index}" :title="app.title" />
           </div>
         </div>
-        <div class="item setting" @click="choiceMenuFun('/setting/theme')">
+        <div class="item setting" @click="choiceMenuFun('/setting/theme','setting')">
           <img src="../assets/icon/menu/a-menu-setting.png" :class="{'active':choiceMenu=='/setting/theme'}" title="设置" />
         </div>
       </div>
@@ -24,7 +25,7 @@
         <i class="fa fa-star-o"></i>
         取消固定
       </div>
-      <div @click="reloadApp();">
+      <div @click="reloadApp();" v-if="this.rightMenu.app.url==this.choiceMenu">
         <i class="fa fa-repeat"></i>
         重新打开
       </div>
@@ -53,10 +54,12 @@
     globalBus
   } from '@/assets/js/globalBus.js';
   export default {
+    inject:['reload'],
     components: {},
     data() {
       return {
-        choiceMenu: 'home',
+        choiceMenu: '/',
+        choiceMenuName: '/',
         activeApps: [],
         rightMenuStyle: {
           left: 0,
@@ -72,6 +75,7 @@
       globalBus.$on('openApp', (app) => {
         for (var x in this.activeApps) {
           if (app.url == this.activeApps[x].url) {
+            this.choiceMenuName = app.name;
             this.choiceMenu = app.url
             this.$router.push(app.url).catch(err => {
               err
@@ -81,43 +85,55 @@
         }
         if (app.type == "app") {
           this.activeApps.push(app);
+          this.choiceMenuName = app.name;
           this.choiceMenu = app.url
           this.$router.push(app.url).catch(err => {
             err
           })
         }
+        this.$store.commit("iskeepAlive", app.name);
       });
     },
     methods: {
-      closeApp(){
+      reloadApp() {
+        var _this=this;
+        this.$store.commit("noKeepAlive", this.choiceMenuName);
+        this.$router.push("/reload").catch(err => {console.log(err)})
+        setTimeout(function(){
+           _this.$router.push(_this.choiceMenu).catch(err => {console.log(err)})
+           this.$store.commit("iskeepAlive", this.choiceMenuName);
+        },1000)
+      },
+      closeApp() {
         var app = this.activeApps[this.rightMenu.index];
-        if(this.choiceMenu==app.url){
+        this.$store.commit("noKeepAlive", app.name);
+        if (this.choiceMenu == app.url) {
           this.choiceMenu = "/";
           this.$router.push("/").catch(err => {
             err
           })
         }
-        this.activeApps.splice(this.rightMenu.index,1);
+        this.activeApps.splice(this.rightMenu.index, 1);
       },
       removeAppFit(index) {
         var app = this.activeApps[this.rightMenu.index];
         app.fitMenu = false;
-        db.remove({ url: app.url }, {}, (err, ret) => {})
+        db.remove({
+          url: app.url
+        }, {}, (err, ret) => {})
       },
       appFit(index) {
         var app = this.activeApps[this.rightMenu.index];
         app.fitMenu = true;
         db.insert(app, (err, ret) => {})
       },
-      choiceMenuFun(url) {
+      choiceMenuFun(url, name) {
         this.rightMenu.index = "-1";
         this.choiceMenu = url;
+        this.choiceMenuName = name;
         this.$router.push(url).catch(err => {
           err
         })
-      },
-      addActiveApp(app) {
-
       },
       showRightMenu(e, index) {
         this.rightMenu.index = index;
@@ -135,12 +151,18 @@
     },
     mounted() {
       var _this = this;
-      this.choiceMenu = this.$route.path
       window.addEventListener("click", this.clickOther);
-
       db.find({}, function(err, docs) {
         _this.activeApps = docs;
+        for (var x in docs) {
+          if (_this.$route.path == docs[x].url) {
+            _this.choiceMenuFun(_this.$route.path);
+            return;
+          }
+        }
+        _this.choiceMenuFun('/');
       });
+
     }
   }
 </script>
