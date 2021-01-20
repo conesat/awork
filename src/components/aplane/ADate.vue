@@ -68,10 +68,10 @@
           changeShowType: 'moth',
         },
         //今天日期
-        today:{
-          year:'',
-          moth:'',
-          date:''
+        today: {
+          year: '',
+          moth: '',
+          date: ''
         }
       }
     },
@@ -93,17 +93,21 @@
     methods: {
       //回到当天
       toToday() {
-        var _this=this;
+        this.initToday();
+        this.getDateList(this.aPlane.changeShowType);
+      },
+      initToday() {
+        var _this = this;
         this.pickerDate = new Date();
         this.chioceYear = this.pickerDate.getFullYear();
         this.chioceMoth = this.pickerDate.getMonth();
         this.chioceDate = this.pickerDate.getDate();
         this.initDate();
         this.initDay();
-        this.today={
-          year:this.chioceYear,
-          moth:this.chioceMoth,
-          date:this.chioceDate
+        this.today = {
+          year: this.chioceYear,
+          moth: this.chioceMoth,
+          date: this.chioceDate
         }
         globalBus.$emit('aDate_changeDateBack', {
           year: _this.chioceYear,
@@ -111,7 +115,6 @@
           date: _this.chioceDate,
           week: _this.chioceWeek,
         });
-        this.getDateList(this.aPlane.changeShowType);
       },
       getDateList(type) {
         var _this = this;
@@ -246,7 +249,7 @@
       },
       //初始化周
       initDay() {
-        this.day.splice(0,this.day.length)
+        this.day.splice(0, this.day.length)
         for (var x = 0; x < 6; x++) {
           this.day.push({
             index: x,
@@ -256,7 +259,7 @@
       }
     },
     mounted() {
-      this.toToday();
+      this.initToday();
     }
   }
 </script>
@@ -352,7 +355,8 @@
     .date-day .date-day-line {
       color: #B0BEC5;
       transition: all 0.3s linear;
-      .today{
+
+      .today {
         background: #59a4d0;
         border-radius: 50%;
         color: #FFFFFF;
@@ -400,6 +404,4 @@
     border-radius: 50%;
     color: #FFFFFF;
   }
-
-
 </style>

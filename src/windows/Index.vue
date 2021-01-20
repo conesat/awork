@@ -30,8 +30,6 @@
       $route: {
         //监听路由变化
         handler: function(to, from) {
-          console.log(to)
-          console.log(from)
           this.noCatchArr = this.$store.state.noCatchArr;
         }
       }

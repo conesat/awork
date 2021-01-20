@@ -42,8 +42,9 @@
                 {{works[index].type}}
               </div>
             </td>
-            <td v-for="(work,wIndex) in works[index].data">
-              <div class="work-item" v-for="(detail,dIndex) in work">
+            <td v-for="(work,wIndex) in works[index].data" :colspan='work.colspan'>
+              <div class="work-item" v-for="(detail,dIndex) in work.data"
+              :style="{'width':getTdWidth(detail.colspan,work.colspan)}" :title="'持续'+detail.colspan+'天'">
                 {{detail.title}}
               </div>
             </td>
@@ -56,10 +57,6 @@
 
 <script>
   const nedb = require('nedb');
-  const aplaneTypeDb = new nedb({
-    filename: '/data/aplane-type.db',
-    autoload: true
-  });
   import {
     globalBus
   } from '@/assets/js/globalBus.js';
@@ -69,6 +66,8 @@
     },
     data() {
       return {
+        //任务类型数据库
+        aplaneTypeDb: undefined,
         //任务数据库
         aplaneTodoDb: undefined,
         //当前加载的数据库
@@ -85,7 +84,7 @@
           date: '',
           week: ''
         },
-        showType: 'moth',
+        showType: '',
         dates: [],
         works: [],
         typeListMap: new Map(),
@@ -98,13 +97,29 @@
     },
     created() {
       globalBus.$on('aPlane_changeShowTypeBack', (res) => {
-        return this.changeShowTypeBack(res);
+        this.changeShowTypeBack(res);
       });
       globalBus.$on('aPlane_reload', (res) => {
-        return this.changeShowTypeBack(res);
+        this.loadTypes();
+        this.startLoadDate={};
+        this.endLoadDate={};
       });
     },
     methods: {
+      //计算占据宽度 col自身比例  allCol总的宽比
+      getTdWidth(col,allCol){
+        if(col==allCol){
+          return 'calc(100% - 10px)';
+        }else{
+          return 'calc('+col/allCol * 100+'% - 10px)';
+        }
+      },
+      reload() {
+        this.loadTypes();
+        this.startLoadDate={};
+        this.endLoadDate={};
+        this.reloadTable();
+      },
       reloadTable() {
         this.positionX = 0;
         this.positionY = 0;
@@ -132,11 +147,13 @@
       },
       changeShowTypeBack(res) {
         var _this = this;
-        this.dates.splice(0, this.dates.length)
+        _this.dates.splice(0, this.dates.length)
         _this.works.splice(0, _this.works.length);
+
         _this.typeListMap.forEach(function(value, key) {
-          value.splice(0, value.length);
+          value.splice(0,value.length)
         });
+
         var start = false;
         if (this.showType == 'moth') {
           if (_this.startLoadDate.year + "-" + _this.startLoadDate.moth != res.year + "-" + res.moth &&
@@ -163,7 +180,7 @@
               });
             })(x)
           }
-        } else if(res.dates&&res.dates.length>0){
+        } else if (res.dates && res.dates.length > 0) {
           var startDate = res.dates[0];
           var endDate = res.dates[res.dates.length - 1];
           //判断这个周是否横跨两个月
@@ -194,6 +211,7 @@
             })(x)
           }
         }
+
         _this.typeListMap.forEach(function(value, key) {
           _this.works.push({
             type: key,
@@ -210,29 +228,58 @@
           date: res.date
         }, function(err, docs) {
           _this.typeListMap.forEach(function(value, key) {
-            value.push([])
+            value.push({
+              colspan:1,
+              data:[]
+            })
           });
           for (var x in docs) {
             var type = docs[x].type ? docs[x].type : '未分类';
+            if (!_this.typeListMap.get(type)) {
+              type = '未分类';
+            }
+            docs[x].colspan=1;
             var data = _this.typeListMap.get(type);
-            data[data.length - 1].push(docs[x]);
+            if(data.length>1){
+              var beforDatas=data[data.length - 2];
+              for(var i in beforDatas.data){
+                if(docs[x].title==beforDatas.data[i].title){
+                   beforDatas.colspan++;
+                   beforDatas.data[i].colspan++;
+                   data[data.length - 1].data.splice(data.length - 1,1);
+                   return;
+                }
+              }
+            }
+            data[data.length - 1].data.push(docs[x]);
           }
         });
       },
       changeShowType(type) {
+        if(this.showType!=type){
+          this.reloadTable();
+        }
         this.showType = type;
         globalBus.$emit('aDate_getDateList', type);
-        this.reloadTable();
       },
       loadTypes() {
         var _this = this;
-        _this.typeListMap.set('未分类', []);
+        _this.typeListMap.clear();
+        _this.typeListMap.set('未分类',[]);
+        _this.aplaneTypeDb = new nedb({
+          filename: '/data/aplane-type.db',
+          autoload: true
+        });
         // 查询所有结果集
-        aplaneTypeDb.find({}, function(err, docs) {
+        _this.aplaneTypeDb.find({}, function(err, docs) {
           for (var x in docs) {
             _this.typeListMap.set(docs[x].name, []);
           }
-          _this.changeShowType('moth');
+          if (_this.showType) {
+            _this.changeShowType(_this.showType);
+          } else {
+            _this.changeShowType('moth');
+          }
         });
       }
     },
@@ -371,14 +418,14 @@
         padding: 10px 0;
         color: #607D8B;
         text-align: left;
-        border: 1px solid rgba(#ECEFF1,0.6);
+        border: 1px solid rgba(#ECEFF1, 0.6);
       }
 
     }
 
     .top {
       padding-bottom: 10px;
-      border-bottom: 1px rgba(#ECEFF1,0.6) solid;
+      border-bottom: 1px rgba(#ECEFF1, 0.6) solid;
       display: flex;
       color: #90A4AE;
 

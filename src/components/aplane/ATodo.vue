@@ -23,13 +23,21 @@
               <i class="fa fa-pencil"></i>
               编辑
             </div>
-            <div @click.stop="top(editIndex);">
+            <!-- <div @click.stop="top(editIndex);">
               <i class="fa fa-arrow-up"></i>
               置顶
-            </div>
+            </div> -->
             <div @click.stop="finish(editIndex);">
               <i class="fa fa-check"></i>
               完成
+            </div>
+            <div @click="toNextDay(editIndex);" title="顺延至下一天">
+              <i class="fa fa-flag-o"></i>
+              延期
+            </div>
+            <div @click="nextTodo(editIndex);" title="添加到明天任务清单">
+              <i class="fa fa-flag-o"></i>
+              预排
             </div>
             <div class="delete" @click.stop="remove(editIndex);">
               <i class="fa fa-trash"></i>
@@ -47,7 +55,7 @@
           <span class="fa fa-check" title="添加" @click="addWork()"></span>
         </div>
         <div style="flex: 1;overflow-y: auto;">
-          <input v-model="addWorkForm.title" placeholder="请输入标题,最多20字" class="input-title" maxlength="20"/>
+          <input v-model="addWorkForm.title" placeholder="请输入标题,最多20字" class="input-title" maxlength="20" />
           <div class="select-type">
             <div class="input-div" @click.stop="showTypeSelectFun">
               <span class="text" v-if="addWorkForm.type==''">请选择分类</span>
@@ -125,12 +133,58 @@
     },
     created() {
       var _this=this;
+
       //获取日期后回调这里
       globalBus.$on('aDate_changeDateBack', (date) => {
         _this.loadTodo(date);
       });
     },
     methods: {
+      nextTodo(index){
+        var _this=this;
+        var curTime = new Date();
+        var nextDate = new Date(curTime.setDate(curTime.getDate() + 1));
+        if(this.loadDate.week==0||this.loadDate.week==6){
+
+        }
+        _this.insertWork({
+          year:nextDate.getFullYear(),
+          moth:nextDate.getMonth(),
+          date:nextDate.getDate(),
+          title:_this.list[index].title,
+          detail:_this.list[index].detail,
+          status:'0',
+          type:_this.list[index].type,
+        },_this.list[index],(err,ret) => {
+          if(err){
+            Swal.fire({
+              title: `已添加任务`,
+              icon: 'success'
+            })
+          }
+        });
+      },
+      toNextDay(index){
+        var _this=this;
+        var curTime = new Date(_this.loadDate.year,_this.loadDate.moth,_this.loadDate.date);
+        var nextDate = new Date(curTime.setDate(curTime.getDate() + 1));
+        _this.insertWork({
+          year:nextDate.getFullYear(),
+          moth:nextDate.getMonth(),
+          date:nextDate.getDate(),
+          title:_this.list[index].title,
+          detail:_this.list[index].detail,
+          status:'0',
+          type:_this.list[index].type,
+        },_this.list[index],(err,ret) => {
+          if(err){
+            Swal.fire({
+              title: `已延期至第二天`,
+              icon: 'success'
+            })
+          }
+        });
+      },
       remove(index) {
         var _this=this;
         Swal.fire({
@@ -142,7 +196,11 @@
           cancelButtonText: `取消`,
         }).then((result) => {
           if (result.isDenied) {
-             this.list.splice(index, 1);
+            // 删除
+            _this.aplaneTodoDb.remove({ _id: this.list[index]._id }, {}, function (err, numRemoved) {
+                _this.list.splice(index, 1);
+                globalBus.$emit('aPlane_reload', (date) => {});
+            });
           }
         })
       },
@@ -168,10 +226,11 @@
           if (result.isDenied) {
             aplaneTypeDb.remove({ _id: type._id }, {}, function (err, numRemoved) {
                 _this.loadTypes();
+                globalBus.$emit('aPlane_reload', (date) => {});
             });
-          if(type.name==_this.addWorkForm.type){
-            _this.addWorkForm.type='';
-          }
+            if(type.name==_this.addWorkForm.type){
+              _this.addWorkForm.type='';
+            }
           }
         })
       },
@@ -188,6 +247,7 @@
                   title: `已添加`,
                   icon: 'success'
                 })
+                 globalBus.$emit('aPlane_reload', (date) => {});
                 _this.loadTypes();
               }else{
                 Swal.fire({
@@ -229,18 +289,19 @@
           alert("标题不能为空！")
         }else{
           if(!this.addWorkForm._id){
-            // 插入单项
-            _this.aplaneTodoDb.insert({
-              year:_this.loadDate.year,
-              moth:_this.loadDate.moth,
-              date:_this.loadDate.date,
+            _this.insertWork({
               title:_this.addWorkForm.title,
               detail:_this.addWorkForm.detail,
               status:'0',
               type:_this.addWorkForm.type,
-            }, (err, ret) => {
-              _this.list.push(ret)
-              _this.closeAdd();
+              year:_this.loadDate.year,
+              moth:_this.loadDate.moth,
+              date:_this.loadDate.date,
+            },(err,ret) => {
+              if(err){
+                _this.list.push(ret)
+                _this.closeAdd();
+              }
             });
           }else {
             var newItem = {
@@ -253,15 +314,59 @@
               moth:_this.loadDate.moth,
               date:_this.loadDate.date,
             }
-            // 插入单项
-            _this.aplaneTodoDb.update({
-              _id: this.addWorkForm._id
-            },newItem, {}, (err, ret) => {
-              _this.list.splice(_this.addWorkForm.index,1,newItem)
-              _this.closeAdd();
-            });
+            _this.aplaneTodoDb.find({
+              year:newItem.year,
+              moth:newItem.moth,
+              date:newItem.date,
+              title:newItem.title,
+              }, function (err, docs) {
+                 if(docs.length==0||(docs.length==1&&newItem._id==docs[0]._id)){
+                   _this.aplaneTodoDb.update({
+                     _id: _this.addWorkForm._id
+                   },newItem, {}, (err, ret) => {
+                     _this.list.splice(_this.addWorkForm.index,1,newItem)
+                     _this.closeAdd();
+                   });
+                 }else{
+                   Swal.fire({
+                     title: `任务已存在`,
+                     icon: 'error'
+                   })
+                 }
+              })
+
           }
+           globalBus.$emit('aPlane_reload', (date) => {});
         }
+      },
+      insertWork(data,callBack){
+        var _this=this;
+        _this.aplaneTodoDb.find({
+          year:data.year,
+          moth:data.moth,
+          date:data.date,
+          title:data.title,
+          }, function (err, docs) {
+          if(docs.length==0){
+            _this.aplaneTodoDb.insert({
+              year:data.year,
+              moth:data.moth,
+              date:data.date,
+              title:data.title,
+              detail:data.detail,
+              status:'0',
+              type:data.type,
+            }, (err, ret) => {
+              callBack(true,ret);
+            });
+          }else{
+            callBack(false,ret);
+            Swal.fire({
+              title: `任务已存在`,
+              icon: 'error'
+            })
+          }
+        });
       },
       closeAdd(){
         this.showAdd = false;
