@@ -144,46 +144,87 @@
         var _this=this;
         var curTime = new Date();
         var nextDate = new Date(curTime.setDate(curTime.getDate() + 1));
-        if(this.loadDate.week==0||this.loadDate.week==6){
+        var week=nextDate.getDay();
+        if(week==0||week==6){
+          Swal.fire({
+            title: '明天是周末哦，继续添加吗?',
+            showDenyButton: true,
+            showCancelButton: true,
+            showConfirmButton: true,
+            denyButtonText: `添加`,
+            confirmButtonText: `顺延下个工作日`,
+            cancelButtonText: `取消`,
+          }).then((result) => {
+            if (result.isConfirmed) {
 
+            }else if (result.isDenied) {
+
+            }
+          })
+        }else{
+          _this.insertWork({
+            year:nextDate.getFullYear(),
+            moth:nextDate.getMonth(),
+            date:nextDate.getDate(),
+            title:_this.list[index].title,
+            detail:_this.list[index].detail,
+            status:'0',
+            type:_this.list[index].type,
+          },(err,ret) => {
+            if(err){
+              Swal.fire({
+                title: `已添加任务`,
+                icon: 'success'
+              })
+            }
+          }); 
         }
-        _this.insertWork({
-          year:nextDate.getFullYear(),
-          moth:nextDate.getMonth(),
-          date:nextDate.getDate(),
-          title:_this.list[index].title,
-          detail:_this.list[index].detail,
-          status:'0',
-          type:_this.list[index].type,
-        },_this.list[index],(err,ret) => {
-          if(err){
-            Swal.fire({
-              title: `已添加任务`,
-              icon: 'success'
-            })
-          }
-        });
       },
       toNextDay(index){
         var _this=this;
         var curTime = new Date(_this.loadDate.year,_this.loadDate.moth,_this.loadDate.date);
         var nextDate = new Date(curTime.setDate(curTime.getDate() + 1));
-        _this.insertWork({
-          year:nextDate.getFullYear(),
-          moth:nextDate.getMonth(),
-          date:nextDate.getDate(),
-          title:_this.list[index].title,
-          detail:_this.list[index].detail,
-          status:'0',
-          type:_this.list[index].type,
-        },_this.list[index],(err,ret) => {
-          if(err){
-            Swal.fire({
-              title: `已延期至第二天`,
-              icon: 'success'
-            })
-          }
-        });
+        var week=nextDate.getDay();
+        console.log(week)
+        if(week==0||week==6){
+          Swal.fire({
+            title: '下一天是周末哦，继续添加吗?',
+            showDenyButton: true,
+            showCancelButton: true,
+            showConfirmButton: true,
+            denyButtonText: `添加`,
+            confirmButtonText: `顺延下个工作日`,
+            cancelButtonText: `取消`,
+          }).then((result) => {
+            if (result.isConfirmed) {
+
+            }else if (result.isDenied) {
+
+            }
+          })
+        }else{
+          _this.insertWork({
+            year:nextDate.getFullYear(),
+            moth:nextDate.getMonth(),
+            date:nextDate.getDate(),
+            title:_this.list[index].title,
+            detail:_this.list[index].detail,
+            status:'0',
+            type:_this.list[index].type,
+          },(err,ret) => {
+            if(err){
+              Swal.fire({
+                title: `已延期至第二天`,
+                icon: 'success'
+              })
+            }else{
+              Swal.fire({
+                title: nextDate.getFullYear()+'/'+(nextDate.getMonth()+1)+'/'+nextDate.getDate()+`已存在同名任务：`+_this.list[index].title,
+                icon: 'error'
+              })
+            }
+          }); 
+        }
       },
       remove(index) {
         var _this=this;
@@ -301,6 +342,11 @@
               if(err){
                 _this.list.push(ret)
                 _this.closeAdd();
+              }else{
+                Swal.fire({
+                  title: `任务已存在`,
+                  icon: 'error'
+                })
               }
             });
           }else {
@@ -356,15 +402,11 @@
               detail:data.detail,
               status:'0',
               type:data.type,
-            }, (err, ret) => {
-              callBack(true,ret);
+            }, (err, docs) => {
+              callBack(true,docs);
             });
           }else{
-            callBack(false,ret);
-            Swal.fire({
-              title: `任务已存在`,
-              icon: 'error'
-            })
+            callBack(false,docs);
           }
         });
       },

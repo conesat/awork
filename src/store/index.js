@@ -18,8 +18,8 @@ themeDb.ensureIndex({
 
 const state = {
   theme: {
-    bgColorStart: '#9d9d9d',
-    bgColorEnd: '#9d9d9d',
+    bgColorStart: '#f9f9f9',
+    bgColorEnd: '#f9f9f9',
     bfColor: '#ffffff',
     themeType: 'light',
     normalFontColor: '#9d9d9d',

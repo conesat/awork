@@ -212,8 +212,9 @@
       vertical-align: middle;
 
       .menus {
+        box-sizing: border-box;
         height: 100%;
-        width: 1.8rem;
+        width: calc(1.8rem + 20px);
         position: relative;
         display: flex;
         flex-direction: column;
