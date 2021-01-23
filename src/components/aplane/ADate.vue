@@ -29,7 +29,7 @@
           'today':item.year==today.year&&item.moth==today.moth&&item.date==today.date}"
             v-for="(item,index) in date" v-if="index<7*(indexDay+1)&&index>=7*indexDay">
             {{item.date}}
-            <!-- <div class="tag" v-if="item.year==today.year&&item.moth==today.moth&&item.date==today.date"></div> -->
+            <div class="tag" v-if="item.tag"></div>
           </span>
         </div>
       </div>
@@ -72,7 +72,7 @@
           year: '',
           moth: '',
           date: ''
-        }
+        },
       }
     },
     created() {
@@ -80,6 +80,9 @@
       globalBus.$on('aDate_getDateList', (type) => {
         this.aPlane.changeShowType = type;
         return this.getDateList(type);
+      });
+      globalBus.$on('aDate_tag', (map) => {
+        this.doTag(map);
       });
       globalBus.$on('aDate_getDate', (type) => {
         globalBus.$emit('aDate_changeDateBack', {
@@ -91,6 +94,14 @@
       });
     },
     methods: {
+      //打标
+      doTag(map) {
+        var _this=this;
+        for (var x in _this.date) {
+          var date = _this.date[x];
+          date.tag = map.get(date.year + "-" + date.moth + "-" + date.date);
+        }
+      },
       //回到当天
       toToday() {
         this.initToday();

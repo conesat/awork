@@ -93,6 +93,7 @@
         positionX: 0,
         positionY: 0,
         tableScale: 1,
+        dateTag:new Map(),//用于更新日历打标记
       }
     },
     created() {
@@ -218,7 +219,11 @@
             data: value
           });
         });
+        
+        //通知日历打标
+        globalBus.$emit('aDate_tag', this.dateTag);
       },
+      //res 日期 找到这个日期下所有计划
       findAndAddPlane(res) {
         var _this = this;
         // 查询所有结果集
@@ -227,30 +232,37 @@
           moth: res.moth,
           date: res.date
         }, function(err, docs) {
+          //先添加一个空计划占行
           _this.typeListMap.forEach(function(value, key) {
             value.push({
               colspan:1,
               data:[]
             })
           });
+          //遍历找到的全部计划
           for (var x in docs) {
+            //如果找不到对应分类就是未分类
             var type = docs[x].type ? docs[x].type : '未分类';
             if (!_this.typeListMap.get(type)) {
               type = '未分类';
             }
+            //默认一个任务一天
             docs[x].colspan=1;
+            //获取这个分类下所及计划 把计划归到这下面
             var data = _this.typeListMap.get(type);
             if(data.length>1){
-              var beforDatas=data[data.length - 2];
+              var beforDatas=data[data.length - 2];//前一天的任务
               for(var i in beforDatas.data){
-                if(docs[x].title==beforDatas.data[i].title){
+                if(docs[x].title==beforDatas.data[i].title){//如果前一天有同一个任务就不在添加  把天数+1
                    beforDatas.colspan++;
                    beforDatas.data[i].colspan++;
                    data[data.length - 1].data.splice(data.length - 1,1);
+                   _this.dateTag.set(res.year+"-"+res.moth+"-"+res.date,true);
                    return;
                 }
               }
             }
+            _this.dateTag.set(res.year+"-"+res.moth+"-"+res.date,true);
             data[data.length - 1].data.push(docs[x]);
           }
         });

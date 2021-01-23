@@ -133,17 +133,14 @@
     },
     created() {
       var _this=this;
-
       //获取日期后回调这里
       globalBus.$on('aDate_changeDateBack', (date) => {
         _this.loadTodo(date);
       });
     },
     methods: {
-      nextTodo(index){
+      addNextTodo(nextDate,data){
         var _this=this;
-        var curTime = new Date();
-        var nextDate = new Date(curTime.setDate(curTime.getDate() + 1));
         var week=nextDate.getDay();
         if(week==0||week==6){
           Swal.fire({
@@ -156,9 +153,45 @@
             cancelButtonText: `取消`,
           }).then((result) => {
             if (result.isConfirmed) {
+              if(week==6){
+                nextDate = new Date(nextDate.setDate(nextDate.getDate() + 2));
+              }else if(week==0){
+                nextDate = new Date(nextDate.setDate(nextDate.getDate() + 1));
+              }
 
+              _this.insertWork({
+                year:nextDate.getFullYear(),
+                moth:nextDate.getMonth(),
+                date:nextDate.getDate(),
+                title:data.title,
+                detail:data.detail,
+                status:'0',
+                type:data.type,
+              },(err,ret) => {
+                if(err){
+                  Swal.fire({
+                    title: `已添加任务`,
+                    icon: 'success'
+                  })
+                }
+              });
             }else if (result.isDenied) {
-
+              _this.insertWork({
+                year:nextDate.getFullYear(),
+                moth:nextDate.getMonth(),
+                date:nextDate.getDate(),
+                title:data.title,
+                detail:data.detail,
+                status:'0',
+                type:data.type,
+              },(err,ret) => {
+                if(err){
+                  Swal.fire({
+                    title: `已添加任务`,
+                    icon: 'success'
+                  })
+                }
+              });
             }
           })
         }else{
@@ -166,10 +199,10 @@
             year:nextDate.getFullYear(),
             moth:nextDate.getMonth(),
             date:nextDate.getDate(),
-            title:_this.list[index].title,
-            detail:_this.list[index].detail,
+            title:data.title,
+            detail:data.detail,
             status:'0',
-            type:_this.list[index].type,
+            type:data.type,
           },(err,ret) => {
             if(err){
               Swal.fire({
@@ -177,54 +210,18 @@
                 icon: 'success'
               })
             }
-          }); 
+          });
         }
       },
-      toNextDay(index){
-        var _this=this;
-        var curTime = new Date(_this.loadDate.year,_this.loadDate.moth,_this.loadDate.date);
+      nextTodo(index){
+        var curTime = new Date();
         var nextDate = new Date(curTime.setDate(curTime.getDate() + 1));
-        var week=nextDate.getDay();
-        console.log(week)
-        if(week==0||week==6){
-          Swal.fire({
-            title: '下一天是周末哦，继续添加吗?',
-            showDenyButton: true,
-            showCancelButton: true,
-            showConfirmButton: true,
-            denyButtonText: `添加`,
-            confirmButtonText: `顺延下个工作日`,
-            cancelButtonText: `取消`,
-          }).then((result) => {
-            if (result.isConfirmed) {
-
-            }else if (result.isDenied) {
-
-            }
-          })
-        }else{
-          _this.insertWork({
-            year:nextDate.getFullYear(),
-            moth:nextDate.getMonth(),
-            date:nextDate.getDate(),
-            title:_this.list[index].title,
-            detail:_this.list[index].detail,
-            status:'0',
-            type:_this.list[index].type,
-          },(err,ret) => {
-            if(err){
-              Swal.fire({
-                title: `已延期至第二天`,
-                icon: 'success'
-              })
-            }else{
-              Swal.fire({
-                title: nextDate.getFullYear()+'/'+(nextDate.getMonth()+1)+'/'+nextDate.getDate()+`已存在同名任务：`+_this.list[index].title,
-                icon: 'error'
-              })
-            }
-          }); 
-        }
+        this.addNextTodo(nextDate,this.list[index]);
+      },
+      toNextDay(index){
+        var curTime = new Date(this.loadDate.year,this.loadDate.moth,this.loadDate.date);
+        var nextDate = new Date(curTime.setDate(curTime.getDate() + 1));
+        this.addNextTodo(nextDate,this.list[index]);
       },
       remove(index) {
         var _this=this;
