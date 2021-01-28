@@ -167,19 +167,25 @@
           _this.startLoadDate = res;
           _this.endLoadDate = res;
           var monthEndDate = new Date(res.year, res.moth + 1, 0).getDate();
-          for (var x = 1; x < monthEndDate; x++) {
+          for (var x = 1; x <= monthEndDate; x++) {
             _this.dates.push({
               year: res.year,
               moth: res.moth,
               date: x
             });
-            (function(x) {
+            (function(x,max) {
               _this.findAndAddPlane({
                 year: res.year,
                 moth: res.moth,
                 date: x
               });
-            })(x)
+              if(x==max){
+                setTimeout(function(){
+                  //通知日历打标
+                  globalBus.$emit('aDate_tag', _this.dateTag);
+                },50)
+              }
+            })(x,monthEndDate)
           }
         } else if (res.dates && res.dates.length > 0) {
           var startDate = res.dates[0];
@@ -203,13 +209,19 @@
               moth: res.dates[x].moth,
               date: res.dates[x].date
             });
-            (function(x) {
+            (function(x,max) {
               _this.findAndAddPlane({
                 year: res.dates[x].year,
                 moth: res.dates[x].moth,
                 date: res.dates[x].date
               });
-            })(x)
+              if(x==max){
+                setTimeout(function(){
+                  //通知日历打标
+                  globalBus.$emit('aDate_tag', _this.dateTag);
+                },50)
+              }
+            })(x,res.dates.length-1)
           }
         }
 
@@ -219,9 +231,7 @@
             data: value
           });
         });
-        
-        //通知日历打标
-        globalBus.$emit('aDate_tag', this.dateTag);
+
       },
       //res 日期 找到这个日期下所有计划
       findAndAddPlane(res) {

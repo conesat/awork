@@ -73,6 +73,7 @@
           moth: '',
           date: ''
         },
+        tagMap:undefined,
       }
     },
     created() {
@@ -82,7 +83,8 @@
         return this.getDateList(type);
       });
       globalBus.$on('aDate_tag', (map) => {
-        this.doTag(map);
+        this.tagMap=map;
+        this.doTag();
       });
       globalBus.$on('aDate_getDate', (type) => {
         globalBus.$emit('aDate_changeDateBack', {
@@ -95,11 +97,18 @@
     },
     methods: {
       //打标
-      doTag(map) {
+      doTag() {
         var _this=this;
+        var map=_this.tagMap;
+        if(!map||!_this.date){
+          return;
+        }
         for (var x in _this.date) {
           var date = _this.date[x];
           date.tag = map.get(date.year + "-" + date.moth + "-" + date.date);
+          if(date.tag){
+            this.$set(_this.date,x,date);
+          }
         }
       },
       //回到当天
@@ -257,6 +266,8 @@
             this.chioceWeek = Math.ceil(this.date.length / 7) - 1;
           }
         }
+
+        this.doTag();
       },
       //初始化周
       initDay() {

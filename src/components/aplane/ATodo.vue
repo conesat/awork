@@ -1,11 +1,12 @@
 <!-- 待完成 -->
 <template>
   <div class="a-todo" :style="{'background':this.$store.state.theme.bfColor}">
-    <div class="list" :style="{'width':showAdd?'0':'100%'}">
+    <div class="list" :style="{'width':showAdd||showAddText?'0':'100%'}">
       <div style="width: 252px;height: 100%;">
         <div style="width: 100%;display: flex;flex-direction: column;height: 100%;overflow: hidden;">
           <div class="title" style="position: relative;">
             <span class="fa fa-plus" title="新建任务" @click="add()"></span>
+            <span class="fa fa-edit" title="新建任务" @click="addText()"></span>
             代办事项
           </div>
           <div class="list">
@@ -50,7 +51,7 @@
     <div class="add-pane" :style="{'width':showAdd?'100%':'0'}">
       <div style="width: 252px;display: flex;flex-direction: column;height: 100%;">
         <div class="title" style="position: relative;">
-          <span class="fa fa-arrow-left" title="新建任务" @click="closeAdd()"></span>
+          <span class="fa fa-arrow-left" title="" @click="closeAdd()"></span>
           新建任务
           <span class="fa fa-check" title="添加" @click="addWork()"></span>
         </div>
@@ -74,6 +75,19 @@
           </div>
           <textarea v-model="addWorkForm.detail" placeholder="请输入内容,最多1000字,必填" maxlength="1000" />
           </div>
+      </div>
+    </div>
+    <div class="add-pane-text" :style="{'width':showAddText?'100%':'0'}">
+      <div style="width: 252px;display: flex;flex-direction: column;height: 100%;">
+        <div class="title" style="position: relative;">
+          <span class="fa fa-arrow-left" title="" @click="closeAdd()"></span>
+          批量新建
+          <span class="fa fa-check" title="添加" @click="addWorkText()"></span>
+        </div>
+        <div style="flex: 1;overflow-y: auto;height: 100%;position: relative;">
+          <textarea v-model="addWorkForm.planeText" maxlength="1000"></textarea>
+          <div v-if="!addWorkForm.planeText" class="textarea-bg">【任务类型】<br>1.任务标题<br>任务内容XXXXXX<br><br>2.任务标题<br>任务内容XXXXXX<br><br>【任务类型】<br>1.任务标题<br>任务内容XXXXXX<br></div>
+        </div>
       </div>
     </div>
    <script type="text/html" id="swalHtml">
@@ -111,6 +125,7 @@
           left: 0,
           show: false,
         },
+        showAddText:false,
         showAdd:false,
         showAddType:false,
         addWorkForm:{
@@ -119,7 +134,8 @@
           title:'',
           detail:'',
           status:'',
-          type:''
+          type:'',
+          planeText:''
         },
         showTypeSelect:false,
         //当前加载的数据库
@@ -139,6 +155,43 @@
       });
     },
     methods: {
+      addWorkText(){
+        if(!this.addWorkForm.planeText){
+          alert("请输入内容");
+        }
+        var text=this.addWorkForm.planeText.trim();
+        var texts=text.split("\n\n");
+        var type="";
+        for(var x in texts){
+          var planeInfo=texts[x].split("\n");
+          var titleIndex=0;
+          var title,deatil;
+          if((planeInfo[0].charAt(0)=='【'||planeInfo[0].charAt(0)=='[')
+          &&planeInfo[0].charAt(planeInfo[0].length-1)=='】'||planeInfo[0].charAt(planeInfo[0].length-1)==']'){
+            type=planeInfo[0].substring(1,planeInfo[0].length-1);
+            titleIndex=1;
+          }
+          title=planeInfo[titleIndex];
+          deatil=planeInfo[titleIndex+1];
+          var reg = /^(\d{1,2})+[.,、。， ]+/g;
+          title=title.replace(reg,'').trim();
+          if(type){
+            /* aplaneTypeDb.find({name: type}, function (err, docs) {
+              if(docs.length==0){
+                aplaneTypeDb.insert({
+                  name: type
+                }, (err, ret) => {});
+              }
+            }); */
+          }
+          console.log({
+            title:title,
+            detail:deatil,
+            type:type,
+          })
+
+        }
+      },
       addNextTodo(nextDate,data){
         var _this=this;
         var week=nextDate.getDay();
@@ -241,6 +294,9 @@
             });
           }
         })
+      },
+      addText(){
+        this.showAddText = true;
       },
       add() {
          this.showAdd = true;
@@ -408,6 +464,7 @@
         });
       },
       closeAdd(){
+        this.showAddText=false;
         this.showAdd = false;
         this.addWorkForm.index='';
         this.addWorkForm._id='';
@@ -509,6 +566,49 @@
     .sweetalert2-add:hover{
       color: #0288D1;
     }
+
+    .add-pane-text{
+      overflow: hidden;
+      transition: all 0.2s linear;
+      width: 0;
+      padding: 10px 0;
+      .textarea-bg{
+        overflow: hidden;
+        color: #969696;
+        font-size: 0.9rem;
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: calc(100% - 10px);
+        width: 100%;
+        padding: 10px 4px;
+        box-sizing: border-box;
+      }
+      textarea{
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 99;
+        height: calc(100% - 10px);
+        width: 100%;
+        margin: 0px;
+        box-sizing: border-box;
+        resize: vertical;
+        background: transparent;
+        padding: 10px 4px;
+        font-family: auto;
+        color: #546E7A;
+        transition: all 0.3s linear;
+        box-sizing: border-box;
+        border: none;
+        outline: none;
+        border-bottom: 1px #CFD8DC solid;
+      }
+      textarea:focus + .textarea-bg{
+        display: none;
+      }
+    }
+
     .add-pane{
       overflow: hidden;
       transition: all 0.2s linear;
@@ -679,14 +779,16 @@
       color: #69849B;
       border-bottom: 1px #a0b2c1 solid;
 
-      .fa-plus,.fa-arrow-left {
+      .fa-plus,.fa-arrow-left,.fa-edit {
         position: absolute;
         left: 8px;
         top: 8px;
         cursor: pointer;
         transition: all 0.1s linear;
       }
-
+      .fa-edit {
+        left: 2rem;
+      }
       .fa-check{
         color: #2E7D32;
         position: absolute;
@@ -696,7 +798,7 @@
         transition: all 0.1s linear;
       }
 
-      .fa-plus:hover,.fa-arrow-left:hover,.fa-check:hover {
+      .fa-plus:hover,.fa-arrow-left:hover,.fa-check:hover,.fa-edit:hover {
         color: #29B6F6;
       }
 

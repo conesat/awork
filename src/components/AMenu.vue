@@ -101,7 +101,7 @@
         this.$router.push("/reload").catch(err => {console.log(err)})
         setTimeout(function(){
            _this.$router.push(_this.choiceMenu).catch(err => {console.log(err)})
-           this.$store.commit("iskeepAlive", this.choiceMenuName);
+           _this.$store.commit("iskeepAlive", this.choiceMenuName);
         },1000)
       },
       closeApp() {
