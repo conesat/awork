@@ -35,7 +35,7 @@
             </th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="tableBody">
           <tr v-for="(item,index) in works">
             <td>
               <div class="work-item-type" style="white-space: nowrap;">
@@ -44,7 +44,7 @@
             </td>
             <td v-for="(work,wIndex) in works[index].data" :colspan='work.colspan'>
               <div class="work-item" v-for="(detail,dIndex) in work.data"
-              :style="{'width':getTdWidth(detail.colspan,work.colspan)}" :title="'持续'+detail.colspan+'天'">
+              :style="{'width':getTdWidth(detail.colspan,work.colspan),'font-size':getFontSize(detail.title)}" :title="'持续'+detail.colspan+'天'">
                 {{detail.title}}
               </div>
             </td>
@@ -107,6 +107,9 @@
       });
     },
     methods: {
+      getFontSize(txt){
+        return txt.length>10?'0.8rem':'1rem';
+      },
       //计算占据宽度 col自身比例  allCol总的宽比
       getTdWidth(col,allCol){
         if(col==allCol){
@@ -429,6 +432,7 @@
         position: relative;
         display: block;
         border-collapse: collapse;
+        transform-origin: center;
       }
 
       table th {

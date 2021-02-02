@@ -32,13 +32,13 @@
               <i class="fa fa-check"></i>
               完成
             </div>
+            <div @click="nextTodo(editIndex);" title="添加到明天任务清单">
+              <i class="fa fa-calendar-plus-o"></i>
+              预排
+            </div>
             <div @click="toNextDay(editIndex);" title="顺延至下一天">
               <i class="fa fa-flag-o"></i>
               延期
-            </div>
-            <div @click="nextTodo(editIndex);" title="添加到明天任务清单">
-              <i class="fa fa-flag-o"></i>
-              预排
             </div>
             <div class="delete" @click.stop="remove(editIndex);">
               <i class="fa fa-trash"></i>
@@ -86,7 +86,7 @@
         </div>
         <div style="flex: 1;overflow-y: auto;height: 100%;position: relative;">
           <textarea v-model="addWorkForm.planeText" maxlength="1000"></textarea>
-          <div v-if="!addWorkForm.planeText" class="textarea-bg">【任务类型】<br>1.任务标题<br>任务内容XXXXXX<br><br>2.任务标题<br>任务内容XXXXXX<br><br>【任务类型】<br>1.任务标题<br>任务内容XXXXXX<br></div>
+          <div v-if="!addWorkForm.planeText" class="textarea-bg">【任务类型】<br>1.任务标题<br>任务内容（选填）<br><br>2.任务标题<br>任务内容（选填）<br><br>【任务类型】<br>1.任务标题<br>任务内容（选填）<br></div>
         </div>
       </div>
     </div>
@@ -162,10 +162,12 @@
         var text=this.addWorkForm.planeText.trim();
         var texts=text.split("\n\n");
         var type="";
+        var _this=this;
         for(var x in texts){
           var planeInfo=texts[x].split("\n");
           var titleIndex=0;
           var title,deatil;
+          var okNum=0;
           if((planeInfo[0].charAt(0)=='【'||planeInfo[0].charAt(0)=='[')
           &&planeInfo[0].charAt(planeInfo[0].length-1)=='】'||planeInfo[0].charAt(planeInfo[0].length-1)==']'){
             type=planeInfo[0].substring(1,planeInfo[0].length-1);
@@ -176,20 +178,37 @@
           var reg = /^(\d{1,2})+[.,、。， ]+/g;
           title=title.replace(reg,'').trim();
           if(type){
-            /* aplaneTypeDb.find({name: type}, function (err, docs) {
+            aplaneTypeDb.find({name: type}, function (err, docs) {
               if(docs.length==0){
                 aplaneTypeDb.insert({
                   name: type
                 }, (err, ret) => {});
               }
-            }); */
+            });
           }
-          console.log({
-            title:title,
-            detail:deatil,
-            type:type,
-          })
-
+          (function(x){
+            _this.insertWork({
+              title:title,
+              detail:deatil,
+              status:'0',
+              type:type,
+              year:_this.loadDate.year,
+              moth:_this.loadDate.moth,
+              date:_this.loadDate.date,
+            },(err,ret) => {
+              if(err){
+                okNum++;
+                _this.list.push(ret)
+              }
+              if(x==texts.length-1){
+                Swal.fire({
+                  title: `成功添加`+okNum+`个任务`+(okNum==texts.length?'':",失败"+(texts.length-okNum)+"个"),
+                  icon: okNum==texts.length?'success':'error'
+                })
+                 _this.closeAdd();
+              }
+            });
+          })(x)
         }
       },
       addNextTodo(nextDate,data){
@@ -377,11 +396,11 @@
       },
       addWork(){
         var _this=this;
-        this.addWorkForm.title=this.addWorkForm.title.trim();
-        this.addWorkForm.detail=this.addWorkForm.detail.trim();
         if(!this.addWorkForm.title){
           alert("标题不能为空！")
         }else{
+          this.addWorkForm.title=this.addWorkForm.title.trim();
+          this.addWorkForm.detail=this.addWorkForm.detail?this.addWorkForm.detail.trim():"";
           if(!this.addWorkForm._id){
             _this.insertWork({
               title:_this.addWorkForm.title,
