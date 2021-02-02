@@ -38,6 +38,7 @@
     mounted() {
       var _this = this;
       if (ipcRenderer) {
+        ipcRenderer.send('open-tool-win');
         this.showBar = true;
         //监听窗口变化
         ipcRenderer.on('restoreMaximize', (event, data) => {

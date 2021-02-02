@@ -3,6 +3,7 @@ const {
   BrowserWindow,
   ipcRenderer
 } = require('electron');
+
 var mainWindow = BrowserWindow.getFocusedWindow();
 
 //监听窗口变化
@@ -13,6 +14,7 @@ mainWindow.on('resize', () => {
     BrowserWindow.getFocusedWindow().webContents.send('restoreMaximize', 'maximize');
   }
 })
+
 //置顶
 ipcMain.on('window-top', () => {
   if (mainWindow.isAlwaysOnTop()) {
@@ -41,7 +43,28 @@ ipcMain.on('window-max', () => {
     BrowserWindow.getFocusedWindow().webContents.send('restoreMaximize', 'maximize');
   }
 });
+
 //关闭
 ipcMain.on('window-close', () => {
   mainWindow.close();
+});
+
+ipcMain.on('open-tool-win', () => {
+  const winURL = process.env.NODE_ENV === 'development' ?
+    'http://localhost:8080' :
+    `file://${__dirname}/index.html`;
+  // 定义calendar窗体
+  let calendarWin
+  calendarWin = new BrowserWindow({
+    width: 400,
+    height: 200,
+    parent: win, // win是主窗口
+    webPreferences: {
+      nodeIntegration: true
+    }
+  })
+  calendarWin.loadURL(winURL + '#/miniTool')
+  calendarWin.on('closed', () => {
+    calendarWin = null
+  })
 });
