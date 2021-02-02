@@ -19,7 +19,7 @@ function createWindow() {
   Menu.setApplicationMenu(null);
   win = new BrowserWindow(windowConfig); //创建一个窗口
   win.loadURL(`file://${__dirname}/index.html`); //在窗口内要展示的内容index.html 就是打包生成的index.html
-  //win.webContents.openDevTools(); //开启调试工具
+  win.webContents.openDevTools(); //开启调试工具
   win.on('close', () => {
     //回收BrowserWindow对象
     win = null;
