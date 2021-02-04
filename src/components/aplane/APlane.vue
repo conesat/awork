@@ -8,7 +8,7 @@
         <div class="bottom-tag" :class="{'to-right':showType=='week','to-left':showType=='moth'}"></div>
       </div>
       <div class="tools">
-        <span class="item">
+        <span class="item" @click="showDayReportFun('')">
           <i class="fa fa-file-text-o" aria-hidden="true" title="复制日报"></i>
           <div></div>
         </span>
@@ -43,14 +43,26 @@
               </div>
             </td>
             <td v-for="(work,wIndex) in works[index].data" :colspan='work.colspan'>
-              <div class="work-item" v-for="(detail,dIndex) in work.data"
-              :style="{'width':getTdWidth(detail.colspan,work.colspan),'font-size':getFontSize(detail.title)}" :title="'持续'+detail.colspan+'天'">
+              <div class="work-item" v-for="(detail,dIndex) in work.data" :style="{'width':getTdWidth(detail.colspan,work.colspan),'font-size':getFontSize(detail.title)}"
+                :title="'持续'+detail.colspan+'天'">
                 {{detail.title}}
               </div>
             </td>
           </tr>
         </tbody>
       </table>
+    </div>
+    <div class="modal-day-report" v-if="showDayReport" :style="{'opacity':showDayReportOpacity}">
+      <div class="modal-day-report-div">
+        <div class="modal-day-report-top">
+          <span class="copy-text" :style="{'opacity':showDayReportTxtOpacity}">已复制</span>
+          <i class="fa fa-copy" @click="CopyDayReport"></i>
+          <i class="fa fa-close" @click="closeDayReportFun"></i>
+        </div>
+        <textarea id="dayReport">
+
+        </textarea>
+      </div>
     </div>
   </div>
 </template>
@@ -93,7 +105,11 @@
         positionX: 0,
         positionY: 0,
         tableScale: 1,
-        dateTag:new Map(),//用于更新日历打标记
+        dateTag: new Map(), //用于更新日历打标记
+        choiceDate: {}, //当前日历选择的日期
+        showDayReport: false, //是否展示日报框
+        showDayReportTxtOpacity: 0, //提示文字透明度
+        showDayReportOpacity: 0, //拷贝弹窗显示透明度
       }
     },
     created() {
@@ -102,26 +118,97 @@
       });
       globalBus.$on('aPlane_reload', (res) => {
         this.loadTypes();
-        this.startLoadDate={};
-        this.endLoadDate={};
+        this.startLoadDate = {};
+        this.endLoadDate = {};
       });
+      globalBus.$on('aDate_changeDateBack', (res) => {
+        this.choiceDate = res;
+        this.showDayReportFun(res);
+      });
+
     },
     methods: {
-      getFontSize(txt){
-        return txt.length>10?'0.8rem':'1rem';
+      CopyDayReport() {
+        var _this = this;
+        let url = document.getElementById("dayReport");
+        url.select(); // 选择对象
+        document.execCommand("Copy");
+        _this.showDayReportTxtOpacity = 1;
+        setTimeout(function() {
+          _this.showDayReportTxtOpacity = 0;
+        }, 1500)
+      },
+      closeDayReportFun() {
+        var _this = this;
+        _this.showDayReportOpacity = 0;
+        setTimeout(function() {
+          _this.showDayReport = false;
+        }, 200)
+      },
+      //日报
+      showDayReportFun(date) {
+        var _this = this;
+        if (date) {
+          if (!_this.showDayReport) return;
+          // 查询所有结果集
+          _this.aplaneTodoDb.find({
+            year: date.year,
+            moth: date.moth,
+            date: date.date
+          }, function(err, docs) {
+            var allTxt = "今日完成\n";
+            var map = new Map();
+            console.log(docs)
+            for (var x in docs) {
+              var type = docs[x].type ? docs[x].type : '未分类'
+              var txtArr = map.get(type);
+              if (!txtArr) {
+                txtArr = [];
+                map.set(type, txtArr)
+              }
+              var txt = (txtArr.length + 1) + '. ' + docs[x].title;
+              if (docs[x].status && docs[x].status != 0) {
+                txt += "（" + docs[x].status + "）\n";
+              } else {
+                txt += "（进行中）\n";
+              }
+              if (docs[x].detail) {
+                txt += '   ' + docs[x].detail + "\n";
+              }
+              txtArr.push(txt)
+            }
+            map.forEach(function(value, key) {
+              allTxt += key + ":\n";
+              for (var x in value) {
+                allTxt += value[x];
+              }
+               allTxt += "\n";
+            })
+            document.getElementById("dayReport").value = allTxt.trim();
+          });
+        } else {
+          _this.showDayReport = true;
+          globalBus.$emit('aDate_getDate', _this.dateTag);
+          setTimeout(function() {
+            _this.showDayReportOpacity = 1;
+          }, 50)
+        }
+      },
+      getFontSize(txt) {
+        return txt.length > 10 ? '0.8rem' : '1rem';
       },
       //计算占据宽度 col自身比例  allCol总的宽比
-      getTdWidth(col,allCol){
-        if(col==allCol){
+      getTdWidth(col, allCol) {
+        if (col == allCol) {
           return 'calc(100% - 10px)';
-        }else{
-          return 'calc('+col/allCol * 100+'% - 10px)';
+        } else {
+          return 'calc(' + col / allCol * 100 + '% - 10px)';
         }
       },
       reload() {
         this.loadTypes();
-        this.startLoadDate={};
-        this.endLoadDate={};
+        this.startLoadDate = {};
+        this.endLoadDate = {};
         this.reloadTable();
       },
       reloadTable() {
@@ -155,7 +242,7 @@
         _this.works.splice(0, _this.works.length);
 
         _this.typeListMap.forEach(function(value, key) {
-          value.splice(0,value.length)
+          value.splice(0, value.length)
         });
 
         var start = false;
@@ -176,19 +263,19 @@
               moth: res.moth,
               date: x
             });
-            (function(x,max) {
+            (function(x, max) {
               _this.findAndAddPlane({
                 year: res.year,
                 moth: res.moth,
                 date: x
               });
-              if(x==max){
-                setTimeout(function(){
+              if (x == max) {
+                setTimeout(function() {
                   //通知日历打标
                   globalBus.$emit('aDate_tag', _this.dateTag);
-                },50)
+                }, 50)
               }
-            })(x,monthEndDate)
+            })(x, monthEndDate)
           }
         } else if (res.dates && res.dates.length > 0) {
           var startDate = res.dates[0];
@@ -212,19 +299,19 @@
               moth: res.dates[x].moth,
               date: res.dates[x].date
             });
-            (function(x,max) {
+            (function(x, max) {
               _this.findAndAddPlane({
                 year: res.dates[x].year,
                 moth: res.dates[x].moth,
                 date: res.dates[x].date
               });
-              if(x==max){
-                setTimeout(function(){
+              if (x == max) {
+                setTimeout(function() {
                   //通知日历打标
                   globalBus.$emit('aDate_tag', _this.dateTag);
-                },50)
+                }, 50)
               }
-            })(x,res.dates.length-1)
+            })(x, res.dates.length - 1)
           }
         }
 
@@ -248,8 +335,8 @@
           //先添加一个空计划占行
           _this.typeListMap.forEach(function(value, key) {
             value.push({
-              colspan:1,
-              data:[]
+              colspan: 1,
+              data: []
             })
           });
           //遍历找到的全部计划
@@ -260,28 +347,28 @@
               type = '未分类';
             }
             //默认一个任务一天
-            docs[x].colspan=1;
+            docs[x].colspan = 1;
             //获取这个分类下所及计划 把计划归到这下面
             var data = _this.typeListMap.get(type);
-            if(data.length>1){
-              var beforDatas=data[data.length - 2];//前一天的任务
-              for(var i in beforDatas.data){
-                if(docs[x].title==beforDatas.data[i].title){//如果前一天有同一个任务就不在添加  把天数+1
-                   beforDatas.colspan++;
-                   beforDatas.data[i].colspan++;
-                   data[data.length - 1].data.splice(data.length - 1,1);
-                   _this.dateTag.set(res.year+"-"+res.moth+"-"+res.date,true);
-                   return;
+            if (data.length > 1) {
+              var beforDatas = data[data.length - 2]; //前一天的任务
+              for (var i in beforDatas.data) {
+                if (docs[x].title == beforDatas.data[i].title) { //如果前一天有同一个任务就不在添加  把天数+1
+                  beforDatas.colspan++;
+                  beforDatas.data[i].colspan++;
+                  data[data.length - 1].data.splice(data.length - 1, 1);
+                  _this.dateTag.set(res.year + "-" + res.moth + "-" + res.date, true);
+                  return;
                 }
               }
             }
-            _this.dateTag.set(res.year+"-"+res.moth+"-"+res.date,true);
+            _this.dateTag.set(res.year + "-" + res.moth + "-" + res.date, true);
             data[data.length - 1].data.push(docs[x]);
           }
         });
       },
       changeShowType(type) {
-        if(this.showType!=type){
+        if (this.showType != type) {
           this.reloadTable();
         }
         this.showType = type;
@@ -290,7 +377,7 @@
       loadTypes() {
         var _this = this;
         _this.typeListMap.clear();
-        _this.typeListMap.set('未分类',[]);
+        _this.typeListMap.set('未分类', []);
         _this.aplaneTypeDb = new nedb({
           filename: '/data/aplane-type.db',
           autoload: true
@@ -303,7 +390,7 @@
           if (_this.showType) {
             _this.changeShowType(_this.showType);
           } else {
-            _this.changeShowType('moth');
+            _this.changeShowType('week');
           }
         });
       }
@@ -394,6 +481,58 @@
     display: flex;
     padding: 14px;
     flex-direction: column;
+
+    .modal-day-report {
+      transition: all 0.2s ease-in-out;
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.3);
+
+      .modal-day-report-div {
+        width: 400px;
+        height: 500px;
+        background: #ffffff;
+        margin: 100px auto;
+        border-radius: 4px;
+        padding: 8px 14px;
+        display: flex;
+        flex-direction: column;
+
+        textarea {
+          margin-top: 10px;
+          width: 100%;
+          flex: 1;
+          border: none;
+          outline: none;
+          resize: none;
+          color: #607D8B;
+        }
+
+        .modal-day-report-top {
+          text-align: right;
+
+          i {
+            margin-left: 10px;
+            cursor: pointer;
+            color: #607D8B;
+          }
+
+          i:hover {
+            color: #03A9F4;
+          }
+
+          .copy-text {
+            transition: all 0.2s ease-in-out;
+            font-size: 0.8rem;
+            color: #7092a2;
+            opacity: 0
+          }
+        }
+      }
+    }
 
     .bottom {
       width: 100%;

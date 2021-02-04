@@ -92,6 +92,7 @@
       }
 
       .menu-left {
+        z-index: 999999;
         margin-right: 10px;
       }
     }

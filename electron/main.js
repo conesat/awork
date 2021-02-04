@@ -37,9 +37,9 @@ function createWindow() {
   //监听窗口变化
   mainWindow.on('resize', () => {
     if (!mainWindow.isMaximized()) {
-      BrowserWindow.getFocusedWindow().webContents.send('restoreMaximize', 'restore');
+      mainWindow.webContents.send('restoreMaximize', 'restore');
     } else {
-      BrowserWindow.getFocusedWindow().webContents.send('restoreMaximize', 'maximize');
+      mainWindow.webContents.send('restoreMaximize', 'maximize');
     }
   })
 }

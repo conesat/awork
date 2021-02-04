@@ -13,6 +13,7 @@
   "build": {
     "electronVersion": "1.8.4",
     "win": {
+      "icon": "logo.ico",
       "requestedExecutionLevel": "highestAvailable",
       "target": [
         {

@@ -3,7 +3,7 @@
     <div class="tool-main" id="content">
       <div class="top" id="top-content">
         <div class="title">
-           <img src="../assets/logo.png" height="30px" />
+          <img src="../assets/logo.png" height="30px" />
         </div>
         <div style="display: flex;padding: 10px;">
           <i class="fa fa-window-maximize" @click="showMaxWin"></i>
@@ -14,15 +14,16 @@
       <div class="plane">
         <div class="item" v-for="(item,index) in todoList" :index="index" v-if="index<2||showMorePlane">
           <input v-model="item.checked" v-show="showMorePlane" type="checkbox" @click="checkFun(index)" />
-          <span>{{item.name}}</span>
+          <span>{{item.title}}</span>
           <div class="menu">
             <i class="fa more" :class="{'fa-angle-right':showMoreMenu,'fa-angle-left':!showMoreMenu}" @click="changeMore(index)"></i>
             <i v-if="showMoreMenu" class="fa fa-close" title="删除"></i>
             <i class="fa fa-check" title="完成"></i>
           </div>
         </div>
+        <div style="text-align: center;padding: 20px;color: #7f8c8d;" v-if="todoList.length==0">无任务</div>
       </div>
-      <div class="more-plane">
+      <div class="more-plane" v-if="todoList.length>0">
         <div class="left">
           <input v-show="showMorePlane" @click="checkAllFun" type="checkbox" v-model="checkAll" />
           <span v-show="showMorePlane">全选</span>
@@ -43,6 +44,7 @@
 </template>
 
 <script>
+  const nedb = require('nedb');
   var ipcRenderer;
   if (window.require) {
     ipcRenderer = window.require('electron').ipcRenderer;
@@ -71,27 +73,16 @@
         showMorePlane: false,
         hasSelect: false,
         checkAll: false,
-        todoList: [{
-            name: "任务",
-            checked: false
-          },
-          {
-            name: "任务",
-            checked: false
-          },
-          {
-            name: "任务",
-            checked: false
-          },
-        ]
+        todoList: [],
+        aplaneTodoDb: {},
       }
     },
     mounted() {
       var _this = this;
       var mainDiv = document.getElementById("main-div");
       if (ipcRenderer) {
-         var offsetHeight = mainDiv.offsetHeight;
-         ipcRenderer.send("mini-set-size", offsetHeight)
+        var offsetHeight = mainDiv.offsetHeight;
+        ipcRenderer.send("mini-set-size", offsetHeight)
         //监听窗口变化
         ipcRenderer.on('mini-resize', (event, data) => {
           var offsetHeight = mainDiv.offsetHeight;
@@ -112,6 +103,25 @@
           }
         }
       }
+      var currentDate = new Date();
+      var year = currentDate.getFullYear(); //得到年份
+      var moth = currentDate.getMonth(); //得到月份
+      var date = currentDate.getDate(); //得到日期
+      this.aplaneTodoDb = new nedb({
+        filename: '/data/aplane-todo_' + year + '-' + moth + '.db',
+        autoload: true
+      });
+      setTimeout(function() {
+        // 查询所有结果集
+        _this.aplaneTodoDb.find({
+          year: year,
+          moth: moth,
+          date: date,
+          status: '进行中'
+        }, function(err, docs) {
+          _this.todoList = docs;
+        })
+      }, 50)
     },
     methods: {
       showMaxWin() {

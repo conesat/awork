@@ -14,7 +14,7 @@
               暂无任务，<span @click.stop="add()">新建一个</span> 吧
             </div>
             <div class="item" :class="{'on-edit':editIndex==index}" v-for="(item,index) in list" @contextmenu.prevent="showRightMenu($event,index)">
-              <span class="item-title" :title="item.title" @click="edit(index)">{{item.title}}</span>
+              <span class="item-title" :title="item.title" @click="edit(index)" :style="{'font-size':item.title.length>8?'0.8rem':'1rem'}">{{item.title}}</span>
               <span class="fa fa-check" title="完成任务"></span>
               <span class="fa fa-trash" title="删除任务" @click="remove(index)"></span>
             </div>
@@ -190,7 +190,7 @@
             _this.insertWork({
               title:title,
               detail:deatil,
-              status:'0',
+              status:'进行中',
               type:type,
               year:_this.loadDate.year,
               moth:_this.loadDate.moth,
@@ -254,7 +254,7 @@
                 date:nextDate.getDate(),
                 title:data.title,
                 detail:data.detail,
-                status:'0',
+                status:'进行中',
                 type:data.type,
               },(err,ret) => {
                 if(err){
@@ -273,7 +273,7 @@
             date:nextDate.getDate(),
             title:data.title,
             detail:data.detail,
-            status:'0',
+            status:'进行中',
             type:data.type,
           },(err,ret) => {
             if(err){
@@ -405,7 +405,7 @@
             _this.insertWork({
               title:_this.addWorkForm.title,
               detail:_this.addWorkForm.detail,
-              status:'0',
+              status:'进行中',
               type:_this.addWorkForm.type,
               year:_this.loadDate.year,
               moth:_this.loadDate.moth,
@@ -426,7 +426,7 @@
               _id: this.addWorkForm._id,
               title:_this.addWorkForm.title,
               detail:_this.addWorkForm.detail,
-              status:'0',
+              status:'进行中',
               type:_this.addWorkForm.type,
               year:_this.loadDate.year,
               moth:_this.loadDate.moth,
@@ -472,7 +472,7 @@
               date:data.date,
               title:data.title,
               detail:data.detail,
-              status:'0',
+              status:'进行中',
               type:data.type,
             }, (err, docs) => {
               callBack(true,docs);
