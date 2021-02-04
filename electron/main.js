@@ -90,6 +90,8 @@ ipcMain.on('window-close', () => {
   mainWindow.close();
 });
 
+
+//+++++++++++++++++++++++悬浮工具 start ++++++++++++++++++++++++++++++++++++++
 ipcMain.on('main-win-open', () => {
   if (!mainWindow) {
     mainWindow = new BrowserWindow({
@@ -192,3 +194,11 @@ ipcMain.on('mini-close', (event, args) => {
 ipcMain.on('mini-set-top', (event, args) => {
   miniWin.setAlwaysOnTop(args)
 });
+
+//刷新悬浮任务
+ipcMain.on('mini-plane-refresh', (event, args) => {
+  if(miniWin){
+    miniWin.webContents.send('mini-plane-refresh-call');
+  }
+});
+//+++++++++++++++++++++++悬浮工具 end ++++++++++++++++++++++++++++++++++++++

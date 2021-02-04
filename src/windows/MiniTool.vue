@@ -49,6 +49,9 @@
   if (window.require) {
     ipcRenderer = window.require('electron').ipcRenderer;
   }
+  import {
+    globalBus
+  } from '@/assets/js/globalBus.js';
   export default {
     components: {},
     name: 'miniTool',
@@ -80,6 +83,7 @@
     mounted() {
       var _this = this;
       var mainDiv = document.getElementById("main-div");
+
       if (ipcRenderer) {
         var offsetHeight = mainDiv.offsetHeight;
         ipcRenderer.send("mini-set-size", offsetHeight)
@@ -96,6 +100,10 @@
             this.top = 0;
           }
         });
+        ipcRenderer.on('mini-plane-refresh-call', (res) => {
+          _this.loadPlane();
+        });
+
         mainDiv.onmouseover = function() {
           if (_this.top <= 0) {
             _this.top = 0;
@@ -103,27 +111,31 @@
           }
         }
       }
-      var currentDate = new Date();
-      var year = currentDate.getFullYear(); //得到年份
-      var moth = currentDate.getMonth(); //得到月份
-      var date = currentDate.getDate(); //得到日期
-      this.aplaneTodoDb = new nedb({
-        filename: '/data/aplane-todo_' + year + '-' + moth + '.db',
-        autoload: true
-      });
-      setTimeout(function() {
-        // 查询所有结果集
-        _this.aplaneTodoDb.find({
-          year: year,
-          moth: moth,
-          date: date,
-          status: '进行中'
-        }, function(err, docs) {
-          _this.todoList = docs;
-        })
-      }, 50)
+      this.loadPlane();
     },
     methods: {
+      loadPlane() {
+        var _this = this;
+        var currentDate = new Date();
+        var year = currentDate.getFullYear(); //得到年份
+        var moth = currentDate.getMonth(); //得到月份
+        var date = currentDate.getDate(); //得到日期
+        this.aplaneTodoDb = new nedb({
+          filename: '/data/aplane-todo_' + year + '-' + moth + '.db',
+          autoload: true
+        });
+        setTimeout(function() {
+          // 查询所有结果集
+          _this.aplaneTodoDb.find({
+            year: year,
+            moth: moth,
+            date: date,
+            status: '进行中'
+          }, function(err, docs) {
+            _this.todoList = docs;
+          })
+        }, 50)
+      },
       showMaxWin() {
         if (ipcRenderer) {
           ipcRenderer.send("main-win-open")

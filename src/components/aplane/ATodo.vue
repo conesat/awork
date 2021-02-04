@@ -90,8 +90,8 @@
         </div>
       </div>
     </div>
-   <script type="text/html" id="swalHtml">
-     <div style="display: flex;width: 20rem;margin: 3rem auto;padding: 14px;background: #FFFFFF;box-sizing: border-box;border-radius: 4px;box-shadow: 0 0 4px #B3E5FC;">
+    <script type="text/html" id="swalHtml">
+      <div style="display: flex;width: 20rem;margin: 3rem auto;padding: 14px;background: #FFFFFF;box-sizing: border-box;border-radius: 4px;box-shadow: 0 0 4px #B3E5FC;">
        <input style="color: #607D8B;flex: 1;outline: none;border: none;font-size: 1rem;" placeholder="请输入类型"/>
        <span class="sweetalert2-add">添加</span>
      </div>
@@ -101,6 +101,10 @@
 
 <script>
   // 加载模块
+  var ipcRenderer;
+  if (window.require) {
+    ipcRenderer = window.require('electron').ipcRenderer;
+  }
   const nedb = require('nedb');
   const aplaneTypeDb = new nedb({
     filename: '/data/aplane-type.db',
@@ -116,8 +120,8 @@
     data() {
       return {
         //任务数据库
-        aplaneTodoDb:undefined,
-        typeList:[],
+        aplaneTodoDb: undefined,
+        typeList: [],
         list: [],
         editIndex: -1,
         rightMenuStyle: {
@@ -125,96 +129,104 @@
           left: 0,
           show: false,
         },
-        showAddText:false,
-        showAdd:false,
-        showAddType:false,
-        addWorkForm:{
-          index:'',
-          _id:'',
-          title:'',
-          detail:'',
-          status:'',
-          type:'',
-          planeText:''
+        showAddText: false,
+        showAdd: false,
+        showAddType: false,
+        addWorkForm: {
+          index: '',
+          _id: '',
+          title: '',
+          detail: '',
+          status: '',
+          type: '',
+          planeText: ''
         },
-        showTypeSelect:false,
+        showTypeSelect: false,
         //当前加载的数据库
-        loadDate:{
-          year:'',
-          moth:'',
-          date:'',
-          week:''
+        loadDate: {
+          year: '',
+          moth: '',
+          date: '',
+          week: ''
         }
       }
     },
     created() {
-      var _this=this;
+      var _this = this;
       //获取日期后回调这里
       globalBus.$on('aDate_changeDateBack', (date) => {
         _this.loadTodo(date);
       });
     },
     methods: {
-      addWorkText(){
-        if(!this.addWorkForm.planeText){
+      //完成任务
+      finishWork(index) {
+        var data = this.list[index];
+        this.refreshMini(date)
+      },
+      addWorkText() {
+        if (!this.addWorkForm.planeText) {
           alert("请输入内容");
         }
-        var text=this.addWorkForm.planeText.trim();
-        var texts=text.split("\n\n");
-        var type="";
-        var _this=this;
-        for(var x in texts){
-          var planeInfo=texts[x].split("\n");
-          var titleIndex=0;
-          var title,deatil;
-          var okNum=0;
-          if((planeInfo[0].charAt(0)=='【'||planeInfo[0].charAt(0)=='[')
-          &&planeInfo[0].charAt(planeInfo[0].length-1)=='】'||planeInfo[0].charAt(planeInfo[0].length-1)==']'){
-            type=planeInfo[0].substring(1,planeInfo[0].length-1);
-            titleIndex=1;
+        var text = this.addWorkForm.planeText.trim();
+        var texts = text.split("\n\n");
+        var type = "";
+        var _this = this;
+        for (var x in texts) {
+          var planeInfo = texts[x].split("\n");
+          var titleIndex = 0;
+          var title, deatil;
+          var okNum = 0;
+          if ((planeInfo[0].charAt(0) == '【' || planeInfo[0].charAt(0) == '[') &&
+            planeInfo[0].charAt(planeInfo[0].length - 1) == '】' || planeInfo[0].charAt(planeInfo[0].length - 1) == ']') {
+            type = planeInfo[0].substring(1, planeInfo[0].length - 1);
+            titleIndex = 1;
           }
-          title=planeInfo[titleIndex];
-          deatil=planeInfo[titleIndex+1];
+          title = planeInfo[titleIndex];
+          deatil = planeInfo[titleIndex + 1];
           var reg = /^(\d{1,2})+[.,、。， ]+/g;
-          title=title.replace(reg,'').trim();
-          if(type){
-            aplaneTypeDb.find({name: type}, function (err, docs) {
-              if(docs.length==0){
+          title = title.replace(reg, '').trim();
+          if (type) {
+            aplaneTypeDb.find({
+              name: type
+            }, function(err, docs) {
+              if (docs.length == 0) {
                 aplaneTypeDb.insert({
                   name: type
                 }, (err, ret) => {});
               }
             });
           }
-          (function(x){
+          (function(x) {
             _this.insertWork({
-              title:title,
-              detail:deatil,
-              status:'进行中',
-              type:type,
-              year:_this.loadDate.year,
-              moth:_this.loadDate.moth,
-              date:_this.loadDate.date,
-            },(err,ret) => {
-              if(err){
+              title: title,
+              detail: deatil,
+              status: '进行中',
+              type: type,
+              year: _this.loadDate.year,
+              moth: _this.loadDate.moth,
+              date: _this.loadDate.date,
+            }, (err, ret) => {
+              if (err) {
                 okNum++;
                 _this.list.push(ret)
               }
-              if(x==texts.length-1){
+              if (x == texts.length - 1) {
                 Swal.fire({
-                  title: `成功添加`+okNum+`个任务`+(okNum==texts.length?'':",失败"+(texts.length-okNum)+"个"),
-                  icon: okNum==texts.length?'success':'error'
+                  title: `成功添加` + okNum + `个任务` + (okNum == texts.length ? '' : ",失败" + (texts.length - okNum) +
+                    "个"),
+                  icon: okNum == texts.length ? 'success' : 'error'
                 })
-                 _this.closeAdd();
+                _this.closeAdd();
               }
             });
           })(x)
         }
       },
-      addNextTodo(nextDate,data){
-        var _this=this;
-        var week=nextDate.getDay();
-        if(week==0||week==6){
+      addNextTodo(nextDate, data) {
+        var _this = this;
+        var week = nextDate.getDay();
+        if (week == 0 || week == 6) {
           Swal.fire({
             title: '明天是周末哦，继续添加吗?',
             showDenyButton: true,
@@ -225,39 +237,39 @@
             cancelButtonText: `取消`,
           }).then((result) => {
             if (result.isConfirmed) {
-              if(week==6){
+              if (week == 6) {
                 nextDate = new Date(nextDate.setDate(nextDate.getDate() + 2));
-              }else if(week==0){
+              } else if (week == 0) {
                 nextDate = new Date(nextDate.setDate(nextDate.getDate() + 1));
               }
 
               _this.insertWork({
-                year:nextDate.getFullYear(),
-                moth:nextDate.getMonth(),
-                date:nextDate.getDate(),
-                title:data.title,
-                detail:data.detail,
-                status:'0',
-                type:data.type,
-              },(err,ret) => {
-                if(err){
+                year: nextDate.getFullYear(),
+                moth: nextDate.getMonth(),
+                date: nextDate.getDate(),
+                title: data.title,
+                detail: data.detail,
+                status: '0',
+                type: data.type,
+              }, (err, ret) => {
+                if (err) {
                   Swal.fire({
                     title: `已添加任务`,
                     icon: 'success'
                   })
                 }
               });
-            }else if (result.isDenied) {
+            } else if (result.isDenied) {
               _this.insertWork({
-                year:nextDate.getFullYear(),
-                moth:nextDate.getMonth(),
-                date:nextDate.getDate(),
-                title:data.title,
-                detail:data.detail,
-                status:'进行中',
-                type:data.type,
-              },(err,ret) => {
-                if(err){
+                year: nextDate.getFullYear(),
+                moth: nextDate.getMonth(),
+                date: nextDate.getDate(),
+                title: data.title,
+                detail: data.detail,
+                status: '进行中',
+                type: data.type,
+              }, (err, ret) => {
+                if (err) {
                   Swal.fire({
                     title: `已添加任务`,
                     icon: 'success'
@@ -266,17 +278,17 @@
               });
             }
           })
-        }else{
+        } else {
           _this.insertWork({
-            year:nextDate.getFullYear(),
-            moth:nextDate.getMonth(),
-            date:nextDate.getDate(),
-            title:data.title,
-            detail:data.detail,
-            status:'进行中',
-            type:data.type,
-          },(err,ret) => {
-            if(err){
+            year: nextDate.getFullYear(),
+            moth: nextDate.getMonth(),
+            date: nextDate.getDate(),
+            title: data.title,
+            detail: data.detail,
+            status: '进行中',
+            type: data.type,
+          }, (err, ret) => {
+            if (err) {
               Swal.fire({
                 title: `已添加任务`,
                 icon: 'success'
@@ -285,20 +297,20 @@
           });
         }
       },
-      nextTodo(index){
+      nextTodo(index) {
         var curTime = new Date();
         var nextDate = new Date(curTime.setDate(curTime.getDate() + 1));
-        this.addNextTodo(nextDate,this.list[index]);
+        this.addNextTodo(nextDate, this.list[index]);
       },
-      toNextDay(index){
-        var curTime = new Date(this.loadDate.year,this.loadDate.moth,this.loadDate.date);
+      toNextDay(index) {
+        var curTime = new Date(this.loadDate.year, this.loadDate.moth, this.loadDate.date);
         var nextDate = new Date(curTime.setDate(curTime.getDate() + 1));
-        this.addNextTodo(nextDate,this.list[index]);
+        this.addNextTodo(nextDate, this.list[index]);
       },
       remove(index) {
-        var _this=this;
+        var _this = this;
         Swal.fire({
-          title: '确认删除"'+this.list[index].title+'"吗?',
+          title: '确认删除"' + this.list[index].title + '"吗?',
           showDenyButton: true,
           showCancelButton: true,
           showConfirmButton: false,
@@ -307,29 +319,32 @@
         }).then((result) => {
           if (result.isDenied) {
             // 删除
-            _this.aplaneTodoDb.remove({ _id: this.list[index]._id }, {}, function (err, numRemoved) {
-                _this.list.splice(index, 1);
-                globalBus.$emit('aPlane_reload', (date) => {});
+            _this.aplaneTodoDb.remove({
+              _id: this.list[index]._id
+            }, {}, function(err, numRemoved) {
+              _this.list.splice(index, 1);
+              globalBus.$emit('aPlane_reload', (date) => {});
+              _this.refreshMini(this.list[index])
             });
           }
         })
       },
-      addText(){
+      addText() {
         this.showAddText = true;
       },
       add() {
-         this.showAdd = true;
+        this.showAdd = true;
       },
-      selectWorkType(type){
-        this.addWorkForm.type=type.name;
+      selectWorkType(type) {
+        this.addWorkForm.type = type.name;
       },
-      showTypeSelectFun(){
-        this.showTypeSelect=!this.showTypeSelect;
+      showTypeSelectFun() {
+        this.showTypeSelect = !this.showTypeSelect;
       },
-      removeWorkType(type){
-        var _this=this;
+      removeWorkType(type) {
+        var _this = this;
         Swal.fire({
-          title: '确认删除"'+type.name+'"吗?',
+          title: '确认删除"' + type.name + '"吗?',
           showDenyButton: true,
           showCancelButton: true,
           showConfirmButton: false,
@@ -337,39 +352,43 @@
           cancelButtonText: `取消`,
         }).then((result) => {
           if (result.isDenied) {
-            aplaneTypeDb.remove({ _id: type._id }, {}, function (err, numRemoved) {
-                _this.loadTypes();
-                globalBus.$emit('aPlane_reload', (date) => {});
+            aplaneTypeDb.remove({
+              _id: type._id
+            }, {}, function(err, numRemoved) {
+              _this.loadTypes();
+              globalBus.$emit('aPlane_reload', (date) => {});
             });
-            if(type.name==_this.addWorkForm.type){
-              _this.addWorkForm.type='';
+            if (type.name == _this.addWorkForm.type) {
+              _this.addWorkForm.type = '';
             }
           }
         })
       },
-      saveWorkType(name){
-        var _this=this;
-        aplaneTypeDb.find({name: name}, function (err, docs) {
-          if(docs.length==0){
+      saveWorkType(name) {
+        var _this = this;
+        aplaneTypeDb.find({
+          name: name
+        }, function(err, docs) {
+          if (docs.length == 0) {
             // 插入单项
             aplaneTypeDb.insert({
               name: name
             }, (err, ret) => {
-              if(ret){
+              if (ret) {
                 Swal.fire({
                   title: `已添加`,
                   icon: 'success'
                 })
-                 globalBus.$emit('aPlane_reload', (date) => {});
+                globalBus.$emit('aPlane_reload', (date) => {});
                 _this.loadTypes();
-              }else{
+              } else {
                 Swal.fire({
                   title: `添加失败`,
                   icon: 'error'
                 })
               }
             });
-          }else{
+          } else {
             Swal.fire({
               title: `该类型已存在`,
               icon: 'error'
@@ -377,128 +396,139 @@
           }
         });
       },
-      addWorkType(){
+      addWorkType() {
         Swal.fire({
           input: 'text',
           inputPlaceholder: '请输入类型',
           inputAttributes: {
             autocapitalize: 'off'
           },
-          showCancelButton:  false,
+          showCancelButton: false,
           confirmButtonText: '添加',
           showLoaderOnConfirm: true,
+        }).then((result) => {
+          if (result.isConfirmed && result.value) {
+            this.saveWorkType(result.value);
           }
-          ).then((result) => {
-            if (result.isConfirmed&&result.value) {
-              this.saveWorkType(result.value);
-            }
         })
       },
-      addWork(){
-        var _this=this;
-        if(!this.addWorkForm.title){
+      addWork() {
+        var _this = this;
+        if (!this.addWorkForm.title) {
           alert("标题不能为空！")
-        }else{
-          this.addWorkForm.title=this.addWorkForm.title.trim();
-          this.addWorkForm.detail=this.addWorkForm.detail?this.addWorkForm.detail.trim():"";
-          if(!this.addWorkForm._id){
+        } else {
+          this.addWorkForm.title = this.addWorkForm.title.trim();
+          this.addWorkForm.detail = this.addWorkForm.detail ? this.addWorkForm.detail.trim() : "";
+          if (!this.addWorkForm._id) {
             _this.insertWork({
-              title:_this.addWorkForm.title,
-              detail:_this.addWorkForm.detail,
-              status:'进行中',
-              type:_this.addWorkForm.type,
-              year:_this.loadDate.year,
-              moth:_this.loadDate.moth,
-              date:_this.loadDate.date,
-            },(err,ret) => {
-              if(err){
+              title: _this.addWorkForm.title,
+              detail: _this.addWorkForm.detail,
+              status: '进行中',
+              type: _this.addWorkForm.type,
+              year: _this.loadDate.year,
+              moth: _this.loadDate.moth,
+              date: _this.loadDate.date,
+            }, (err, ret) => {
+              if (err) {
                 _this.list.push(ret)
                 _this.closeAdd();
-              }else{
+              } else {
                 Swal.fire({
                   title: `任务已存在`,
                   icon: 'error'
                 })
               }
             });
-          }else {
+          } else {
             var newItem = {
               _id: this.addWorkForm._id,
-              title:_this.addWorkForm.title,
-              detail:_this.addWorkForm.detail,
-              status:'进行中',
-              type:_this.addWorkForm.type,
-              year:_this.loadDate.year,
-              moth:_this.loadDate.moth,
-              date:_this.loadDate.date,
+              title: _this.addWorkForm.title,
+              detail: _this.addWorkForm.detail,
+              status: '进行中',
+              type: _this.addWorkForm.type,
+              year: _this.loadDate.year,
+              moth: _this.loadDate.moth,
+              date: _this.loadDate.date,
             }
             _this.aplaneTodoDb.find({
-              year:newItem.year,
-              moth:newItem.moth,
-              date:newItem.date,
-              title:newItem.title,
-              }, function (err, docs) {
-                 if(docs.length==0||(docs.length==1&&newItem._id==docs[0]._id)){
-                   _this.aplaneTodoDb.update({
-                     _id: _this.addWorkForm._id
-                   },newItem, {}, (err, ret) => {
-                     _this.list.splice(_this.addWorkForm.index,1,newItem)
-                     _this.closeAdd();
-                   });
-                 }else{
-                   Swal.fire({
-                     title: `任务已存在`,
-                     icon: 'error'
-                   })
-                 }
-              })
-
+              year: newItem.year,
+              moth: newItem.moth,
+              date: newItem.date,
+              title: newItem.title,
+            }, function(err, docs) {
+              if (docs.length == 0 || (docs.length == 1 && newItem._id == docs[0]._id)) {
+                _this.aplaneTodoDb.update({
+                  _id: _this.addWorkForm._id
+                }, newItem, {}, (err, ret) => {
+                  _this.list.splice(_this.addWorkForm.index, 1, newItem)
+                  _this.closeAdd();
+                  _this.refreshMini(newItem)
+                });
+              } else {
+                Swal.fire({
+                  title: `任务已存在`,
+                  icon: 'error'
+                })
+              }
+            })
           }
-           globalBus.$emit('aPlane_reload', (date) => {});
+          globalBus.$emit('aPlane_reload', (date) => {});
         }
       },
-      insertWork(data,callBack){
-        var _this=this;
+      refreshMini(date) {
+        if(!ipcRenderer){
+          return;
+        }
+        var curTime = new Date();
+        if (curTime.getFullYear() == date.year &&
+          curTime.getMonth() == date.moth &&
+          curTime.getDate() == date.date) {
+          ipcRenderer.send('mini-plane-refresh');
+        }
+      },
+      insertWork(data, callBack) {
+        var _this = this;
         _this.aplaneTodoDb.find({
-          year:data.year,
-          moth:data.moth,
-          date:data.date,
-          title:data.title,
-          }, function (err, docs) {
-          if(docs.length==0){
+          year: data.year,
+          moth: data.moth,
+          date: data.date,
+          title: data.title,
+        }, function(err, docs) {
+          if (docs.length == 0) {
             _this.aplaneTodoDb.insert({
-              year:data.year,
-              moth:data.moth,
-              date:data.date,
-              title:data.title,
-              detail:data.detail,
-              status:'进行中',
-              type:data.type,
+              year: data.year,
+              moth: data.moth,
+              date: data.date,
+              title: data.title,
+              detail: data.detail,
+              status: '进行中',
+              type: data.type,
             }, (err, docs) => {
-              callBack(true,docs);
+              _this.refreshMini(data)
+              callBack(true, docs);
             });
-          }else{
-            callBack(false,docs);
+          } else {
+            callBack(false, docs);
           }
         });
       },
-      closeAdd(){
-        this.showAddText=false;
+      closeAdd() {
+        this.showAddText = false;
         this.showAdd = false;
-        this.addWorkForm.index='';
-        this.addWorkForm._id='';
-        this.addWorkForm.title='';
-        this.addWorkForm.detail='';
-        this.addWorkForm.type='';
+        this.addWorkForm.index = '';
+        this.addWorkForm._id = '';
+        this.addWorkForm.title = '';
+        this.addWorkForm.detail = '';
+        this.addWorkForm.type = '';
       },
       edit(index) {
-        this.addWorkForm={
-          index:index,
-          _id:this.list[index]._id,
-          title:this.list[index].title,
-          detail:this.list[index].detail,
-          status:this.list[index].status,
-          type:this.list[index].type
+        this.addWorkForm = {
+          index: index,
+          _id: this.list[index]._id,
+          title: this.list[index].title,
+          detail: this.list[index].detail,
+          status: this.list[index].status,
+          type: this.list[index].type
         };
         this.showAdd = true;
       },
@@ -512,41 +542,41 @@
         this.rightMenuStyle.show = true
       },
       clickOther(e) {
-        if(e.srcElement.className.indexOf("swal2")!=-1){
+        if (e.srcElement.className.indexOf("swal2") != -1) {
           return;
         }
-        this.showAddType=false;
+        this.showAddType = false;
         this.rightMenuStyle.show = false;
         this.editIndex = -1;
-        this.showTypeSelect=false;
+        this.showTypeSelect = false;
       },
-      loadTypes(){
-        var _this=this;
+      loadTypes() {
+        var _this = this;
         // 查询所有结果集
-        aplaneTypeDb.find({}, function (err, docs) {
-          _this.typeList=docs;
-          if(docs.length==0){
-            _this.addWorkForm.type='';
+        aplaneTypeDb.find({}, function(err, docs) {
+          _this.typeList = docs;
+          if (docs.length == 0) {
+            _this.addWorkForm.type = '';
           }
         });
       },
       //加载任务  一个月一个库
-      loadTodo(date){
-        var _this=this;
-        if(_this.loadDate.year+"-"+_this.loadDate.moth!=date.year+"-"+date.moth){
+      loadTodo(date) {
+        var _this = this;
+        if (_this.loadDate.year + "-" + _this.loadDate.moth != date.year + "-" + date.moth) {
           _this.aplaneTodoDb = new nedb({
-            filename: '/data/aplane-todo_'+date.year+'-'+date.moth+'.db',
+            filename: '/data/aplane-todo_' + date.year + '-' + date.moth + '.db',
             autoload: true
           });
         }
-        _this.loadDate=date;
+        _this.loadDate = date;
         // 查询所有结果集
         _this.aplaneTodoDb.find({
-          year:_this.loadDate.year,
-          moth:_this.loadDate.moth,
-          date:_this.loadDate.date
-        }, function (err, docs) {
-          _this.list=docs;
+          year: _this.loadDate.year,
+          moth: _this.loadDate.moth,
+          date: _this.loadDate.date
+        }, function(err, docs) {
+          _this.list = docs;
         });
       }
     },
@@ -561,11 +591,11 @@
 </script>
 
 <style lang="scss" scoped>
-
   .a-todo {
-    *{
+    * {
       transition: all 0.2s linear;
     }
+
     position: relative;
     transition: all 0.1s linear;
     overflow: hidden;
@@ -576,22 +606,25 @@
     border-radius: 6px;
     box-sizing: border-box;
     padding: 0.625rem;
-    .sweetalert2-add{
+
+    .sweetalert2-add {
       cursor: pointer;
       white-space: nowrap;
       color: #78909C;
       transition: all 0.1s linear;
     }
-    .sweetalert2-add:hover{
+
+    .sweetalert2-add:hover {
       color: #0288D1;
     }
 
-    .add-pane-text{
+    .add-pane-text {
       overflow: hidden;
       transition: all 0.2s linear;
       width: 0;
       padding: 10px 0;
-      .textarea-bg{
+
+      .textarea-bg {
         overflow: hidden;
         color: #969696;
         font-size: 0.9rem;
@@ -603,7 +636,8 @@
         padding: 10px 4px;
         box-sizing: border-box;
       }
-      textarea{
+
+      textarea {
         position: absolute;
         left: 0;
         top: 0;
@@ -623,21 +657,23 @@
         outline: none;
         border-bottom: 1px #CFD8DC solid;
       }
-      textarea:focus + .textarea-bg{
+
+      textarea:focus+.textarea-bg {
         display: none;
       }
     }
 
-    .add-pane{
+    .add-pane {
       overflow: hidden;
       transition: all 0.2s linear;
       width: 0;
       padding: 10px 0;
 
-      .select-type{
+      .select-type {
         display: flex;
         position: relative;
-        .input-div{
+
+        .input-div {
           cursor: pointer;
           font-size: 0.9rem;
           padding: 10px 0;
@@ -647,15 +683,18 @@
           width: 100%;
           border-bottom: 1px #CFD8DC solid;
           display: flex;
-          .text{
+
+          .text {
             padding: 0 4px;
             flex: 1;
           }
-          span{
+
+          span {
             line-height: 1.2rem;
           }
         }
-        .type-select{
+
+        .type-select {
           font-size: 0.8rem;
           display: flex;
           flex-direction: column;
@@ -669,40 +708,47 @@
           border-radius: 2px;
           width: calc(100% - 4px);
           left: 2px;
-          .items{
+
+          .items {
             flex: 1;
             overflow-y: auto;
-            .item{
+
+            .item {
               position: relative;
               cursor: pointer;
               height: 1.8rem;
               text-align: center;
-              span{
+
+              span {
                 padding: 0.1rem;
                 display: block;
                 transition: all 0.1s linear;
                 color: #90A4AE;
                 line-height: 1.6rem;
               }
-              .delete{
+
+              .delete {
                 top: 0;
                 position: absolute;
                 right: 10px;
-                background: none!important;
+                background: none !important;
               }
             }
-            .item:hover{
-              span{
+
+            .item:hover {
+              span {
                 font-size: 1.2rem;
                 background: #ecf0f1;
                 color: #34495e;
               }
-              .delete:hover{
+
+              .delete:hover {
                 color: #e74c3c;
               }
             }
           }
-          .add-bottom{
+
+          .add-bottom {
             background: #f5f8f9;
             cursor: pointer;
             display: block;
@@ -710,13 +756,15 @@
             text-align: center;
             padding: 10px 0;
           }
-          .add-bottom:hover{
+
+          .add-bottom:hover {
             background: #ecf0f1;
             color: #34495e;
           }
 
         }
-        .fa-plus{
+
+        .fa-plus {
 
           cursor: pointer;
           line-height: 2.4rem;
@@ -724,19 +772,25 @@
           text-align: center;
           color: #90A4AE;
         }
-        .fa-plus:hover{
+
+        .fa-plus:hover {
           color: #29B6F6;
         }
       }
-      .add-bottom{
+
+      .add-bottom {
         width: 100%;
         text-align: right;
         display: flex;
       }
-      .title{
+
+      .title {
         margin-bottom: 10px;
       }
-      input,textarea,select{
+
+      input,
+      textarea,
+      select {
         background: transparent;
         padding: 10px 4px;
         font-family: auto;
@@ -749,16 +803,21 @@
         outline: none;
         border-bottom: 1px #CFD8DC solid;
       }
-      select{
+
+      select {
         line-height: 2rem;
       }
-      textarea{
+
+      textarea {
         margin-top: 20px;
         min-height: 3rem;
         max-height: 8rem;
         resize: vertical;
       }
-      input:focus,textarea:focus,select:focus {
+
+      input:focus,
+      textarea:focus,
+      select:focus {
         border-bottom: 1px #29B6F6 solid;
       }
     }
@@ -798,17 +857,21 @@
       color: #69849B;
       border-bottom: 1px #a0b2c1 solid;
 
-      .fa-plus,.fa-arrow-left,.fa-edit {
+      .fa-plus,
+      .fa-arrow-left,
+      .fa-edit {
         position: absolute;
         left: 8px;
         top: 8px;
         cursor: pointer;
         transition: all 0.1s linear;
       }
+
       .fa-edit {
         left: 2rem;
       }
-      .fa-check{
+
+      .fa-check {
         color: #2E7D32;
         position: absolute;
         right: 8px;
@@ -817,7 +880,10 @@
         transition: all 0.1s linear;
       }
 
-      .fa-plus:hover,.fa-arrow-left:hover,.fa-check:hover,.fa-edit:hover {
+      .fa-plus:hover,
+      .fa-arrow-left:hover,
+      .fa-check:hover,
+      .fa-edit:hover {
         color: #29B6F6;
       }
 
@@ -863,8 +929,10 @@
 
         .item-title {
           flex: 1;
-          white-space:nowrap;/* 规定文本是否折行 */
-          overflow: hidden;/* 规定超出内容宽度的元素隐藏 */
+          white-space: nowrap;
+          /* 规定文本是否折行 */
+          overflow: hidden;
+          /* 规定超出内容宽度的元素隐藏 */
           text-overflow: ellipsis;
         }
 

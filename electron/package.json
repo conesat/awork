@@ -8,21 +8,20 @@
   "scripts": {
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps",
+    "dist": "electron-builder --win --x64"
   },
   "build": {
-    "electronVersion": "1.8.4",
+    "electronVersion": "11.0.0",
     "win": {
       "icon": "logo.ico",
       "requestedExecutionLevel": "highestAvailable",
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        }
-      ]
+      "target": [{
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      }]
     },
     "appId": "awork",
     "artifactName": "demo-${version}-${arch}.${ext}",
@@ -32,8 +31,11 @@
   },
   "dependencies": {
     "core-js": "^2.4.1",
-    "electron-builder": "^20.44.4",
     "electron-package": "^0.1.0",
-    "electron-updater": "^2.22.1"
+    "electron-updater": "^4.0.0"
+  },
+  "devDependencies": {
+    "electron-builder": "^20.44.4",
+    "electron-packager": "^15.2.0"
   }
 }

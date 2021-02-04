@@ -390,7 +390,7 @@
           if (_this.showType) {
             _this.changeShowType(_this.showType);
           } else {
-            _this.changeShowType('week');
+            _this.changeShowType('moth');
           }
         });
       }
