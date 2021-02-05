@@ -2,11 +2,11 @@
   <div class="url-main">
     <div class="url-main-left">
       <div class="url-main-top">
-        <div class="item" :class="{'active':item.active}" v-for="(item,index) in itemLeft" :index="index">
+        <div class="item" :class="{'active':item.active}" v-for="(item,index) in itemLeft" :index="index" @click="choiceItem('left',index)">
           <span>
             {{item.title}}
           </span>
-          <i class="fa fa-close" v-if="index!=0"></i>
+          <i class="fa fa-close" @click.stop="closeItem('left',index)"></i>
         </div>
         <div class="item add" @click="addItem('left')">
           <i class="fa fa-plus"></i>
@@ -14,31 +14,31 @@
       </div>
       <div class="detail">
         <div class="top">
-          <input placeholder="粘贴需要转换的文本" />
+          <input placeholder="粘贴需要转换的文本" v-model="itemLeft[itemLeftIndex].before" @change="changedBefore('left')"  />
         </div>
         <div class="bottom">
-          <textarea></textarea>
+          <textarea v-model="itemLeft[itemLeftIndex].after"></textarea>
         </div>
       </div>
     </div>
     <div class="url-main-right">
       <div class="url-main-top">
-        <div class="item" :class="{'active':item.active}" v-for="(item,index) in itemRight" :index="index">
+        <div class="item" :class="{'active':item.active}" v-for="(item,index) in itemRight" :index="index" @click="choiceItem('right',index)">
           <span>
             {{item.title}}
           </span>
-          <i class="fa fa-close" v-if="index!=0"></i>
+          <i class="fa fa-close" @click.stop="closeItem('right',index)"></i>
         </div>
-        <div class="item add">
+        <div class="item add" @click="addItem('right')">
           <i class="fa fa-plus"></i>
         </div>
       </div>
       <div class="detail">
         <div class="top">
-          <input placeholder="粘贴需要转换的文本" />
+          <input placeholder="粘贴需要转换的文本" v-model="itemRight[itemRightIndex].before" @change="changedBefore('after')" />
         </div>
         <div class="bottom">
-          <textarea></textarea>
+          <textarea v-model="itemRight[itemRightIndex].after"></textarea>
         </div>
       </div>
     </div>
@@ -53,21 +53,92 @@
       return {
         itemLeft: [{
           title: '#1',
-          active: true
+          active: true,
+          before: '',
+          after: ''
         }],
         itemRight: [{
           title: '#1',
-          active: true
-        }]
+          active: true,
+          before: '',
+          after: ''
+        }],
+        itemLeftIndex: 0,
+        itemRightIndex: 0,
       }
     },
+    watch: {
+    },
     methods: {
+      changedBefore(type) {
+        if (type == 'left') {
+          try {
+            var jsonString = decodeURIComponent(this.itemLeft[this.itemLeftIndex].before)
+            var jsonObj = JSON.parse(jsonString) //把json字符串转为json对象
+            this.itemLeft[this.itemLeftIndex].after = JSON.stringify(jsonObj, null, 4);
+          } catch (e) {
+            //this.afterLeftTxt = this.leftTxt;
+          }
+        } else if (type == 'right') {
+          try {
+          var jsonString = decodeURIComponent(this.itemRight[this.itemRightIndex].before)
+          var jsonObj = JSON.parse(jsonString) //把json字符串转为json对象
+          this.itemRight[this.itemRightIndex].after = JSON.stringify(jsonObj, null, 4);
+          } catch (e) {
+          }
+        }
+      },
       addItem(type) {
         if (type == 'left') {
           this.itemLeft.push({
             title: '#' + (this.itemLeft.length + 1),
             active: false
           })
+        } else if (type == 'right') {
+          this.itemRight.push({
+            title: '#' + (this.itemRight.length + 1),
+            active: false
+          })
+        }
+      },
+      choiceItem(type, index) {
+        this.caloseAll(type)
+        if (type == 'left') {
+          this.itemLeft[index].active = true;
+          this.itemLeftIndex = index;
+        } else if (type == 'right') {
+          this.itemRight[index].active = true;
+          this.itemRightIndex = index;
+        }
+      },
+      closeItem(type, index) {
+        if (type == 'left') {
+          this.itemLeft.splice(index, 1);
+          if (this.itemLeftIndex != index) {
+            return;
+          }
+          this.itemLeftIndex = index - 1;
+          this.itemLeftIndex = this.itemLeftIndex == -1 ? 0 : this.itemLeftIndex;
+          this.itemLeft[this.itemLeftIndex].active = true;
+        } else if (type == 'right') {
+          this.itemRight.splice(index, 1);
+          if (this.itemRightIndex != index) {
+            return;
+          }
+          this.itemRightIndex = index - 1;
+          this.itemRightIndex = this.itemRightIndex == -1 ? 0 : this.itemRightIndex;
+          this.itemRight[this.itemRightIndex].active = true;
+        }
+      },
+      caloseAll(type) {
+        if (type == 'left') {
+          for (var x = 0; x < this.itemLeft.length; x++) {
+            this.itemLeft[x].active = false;
+          }
+        } else if (type == 'right') {
+          for (var x = 0; x < this.itemRight.length; x++) {
+            this.itemRight[x].active = false;
+          }
         }
       }
     },
@@ -89,6 +160,7 @@
     * {
       font-size: 0.8rem;
       color: #6e797a;
+      transition: all 0.1s linear;
     }
 
     .url-main-left,
@@ -145,7 +217,7 @@
       .url-main-top {
         padding-top: 10px;
         white-space: nowrap;
-        //display: flex;
+        display: flex;
         width: 100%;
         overflow: auto;
 
@@ -160,6 +232,10 @@
 
         }
 
+        span {
+          flex: 1;
+        }
+
         .item {
           display: inline-flex;
           width: 5rem;
@@ -169,7 +245,8 @@
           box-sizing: border-box;
 
           .fa-close {
-            flex: 1;
+            margin-left: 10px;
+            //flex: 1;
             line-height: 1.2rem;
             cursor: pointer;
             text-align: right;
