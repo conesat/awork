@@ -21,7 +21,7 @@
           <div></div>
         </span>
         <span class="item">
-          <i class="fa fa-refresh" aria-hidden="true" @click="reloadTable()" title="重置表格"></i>
+          <i class="fa fa-refresh" aria-hidden="true" @click="reload()" title="重置表格"></i>
         </span>
       </div>
     </div>
@@ -113,19 +113,18 @@
       }
     },
     created() {
-      globalBus.$on('aPlane_changeShowTypeBack', (res) => {
-        this.changeShowTypeBack(res);
-      });
       globalBus.$on('aPlane_reload', (res) => {
-        this.loadTypes();
         this.startLoadDate = {};
         this.endLoadDate = {};
+        this.loadTypes();
+      });
+      globalBus.$on('aPlane_changeShowTypeBack', (res) => {
+        this.changeShowTypeBack(res);
       });
       globalBus.$on('aDate_changeDateBack', (res) => {
         this.choiceDate = res;
         this.showDayReportFun(res);
       });
-
     },
     methods: {
       CopyDayReport() {
@@ -182,7 +181,7 @@
               for (var x in value) {
                 allTxt += value[x];
               }
-               allTxt += "\n";
+              allTxt += "\n";
             })
             document.getElementById("dayReport").value = allTxt.trim();
           });
@@ -206,9 +205,9 @@
         }
       },
       reload() {
-        this.loadTypes();
         this.startLoadDate = {};
         this.endLoadDate = {};
+        this.loadTypes();
         this.reloadTable();
       },
       reloadTable() {
@@ -238,7 +237,7 @@
       },
       changeShowTypeBack(res) {
         var _this = this;
-        _this.dates.splice(0, this.dates.length)
+        _this.dates.splice(0, _this.dates.length)
         _this.works.splice(0, _this.works.length);
 
         _this.typeListMap.forEach(function(value, key) {
@@ -247,17 +246,16 @@
 
         var start = false;
         if (this.showType == 'moth') {
-          if (_this.startLoadDate.year + "-" + _this.startLoadDate.moth != res.year + "-" + res.moth &&
-            _this.endLoadDate.year + "-" + _this.endLoadDate.moth != res.year + "-" + res.moth) {
+          if (_this.startLoadDate.year + "-" + _this.startLoadDate.moth != res.year + "-" + res.moth) {
             _this.aplaneTodoDb = new nedb({
               filename: '/data/aplane-todo_' + res.year + '-' + res.moth + '.db',
               autoload: true
             });
           }
           _this.startLoadDate = res;
-          _this.endLoadDate = res;
           var monthEndDate = new Date(res.year, res.moth + 1, 0).getDate();
           for (var x = 1; x <= monthEndDate; x++) {
+            _this.dateTag.set(res.year + "-" + res.moth + "-" + x, false);
             _this.dates.push({
               year: res.year,
               moth: res.moth,
@@ -267,31 +265,22 @@
               _this.findAndAddPlane({
                 year: res.year,
                 moth: res.moth,
-                date: x
+                date: x,
+                max: max,
+                x: x
               });
-              if (x == max) {
-                setTimeout(function() {
-                  //通知日历打标
-                  globalBus.$emit('aDate_tag', _this.dateTag);
-                }, 50)
-              }
             })(x, monthEndDate)
           }
         } else if (res.dates && res.dates.length > 0) {
           var startDate = res.dates[0];
-          var endDate = res.dates[res.dates.length - 1];
-          //判断这个周是否横跨两个月
-          if (startDate.moth == endDate.moth) {
-            //进入这里说明没有横跨两个月  然后判断是否需要重新加载数据库   避免重复载入先判断和上次加载是否一样
-            if (_this.startLoadDate.year + "-" + _this.startLoadDate.moth != startDate.year + "-" + startDate.moth &&
-              _this.endLoadDate.year + "-" + _this.endLoadDate.moth != startDate.year + "-" + startDate.moth) {
-              _this.aplaneTodoDb = new nedb({
-                filename: '/data/aplane-todo_' + startDate.year + '-' + startDate.moth + '.db',
-                autoload: true
-              });
-              _this.startLoadDate = startDate;
-            }
-
+         _this.endLoadDate = startDate;
+          //进入这里说明没有横跨两个月  然后判断是否需要重新加载数据库   避免重复载入先判断和上次加载是否一样
+          if (_this.startLoadDate.year + "-" + _this.startLoadDate.moth != startDate.year + "-" + startDate.moth) {
+            _this.aplaneTodoDb = new nedb({
+              filename: '/data/aplane-todo_' + startDate.year + '-' + startDate.moth + '.db',
+              autoload: true
+            });
+            _this.startLoadDate = startDate;
           }
           for (var x = 0; x < res.dates.length; x++) {
             this.dates.push({
@@ -299,29 +288,32 @@
               moth: res.dates[x].moth,
               date: res.dates[x].date
             });
+            _this.dateTag.set(res.dates[x].year + "-" + res.dates[x].moth + "-" + res.dates[x].date, false);
+            //进入另一个月份
+            if (res.dates[x].year != _this.endLoadDate.year || res.dates[x].moth != _this.endLoadDate.moth) {
+              _this.aplaneTodoDb = new nedb({
+                filename: '/data/aplane-todo_' + res.dates[x].year + '-' + res.dates[x].moth + '.db',
+                autoload: true
+              });
+              _this.endLoadDate = res.dates[x];
+            }
             (function(x, max) {
               _this.findAndAddPlane({
                 year: res.dates[x].year,
                 moth: res.dates[x].moth,
-                date: res.dates[x].date
+                date: res.dates[x].date,
+                max: max,
+                x: x
               });
-              if (x == max) {
-                setTimeout(function() {
-                  //通知日历打标
-                  globalBus.$emit('aDate_tag', _this.dateTag);
-                }, 50)
-              }
             })(x, res.dates.length - 1)
           }
         }
-
         _this.typeListMap.forEach(function(value, key) {
           _this.works.push({
             type: key,
             data: value
           });
         });
-
       },
       //res 日期 找到这个日期下所有计划
       findAndAddPlane(res) {
@@ -364,6 +356,10 @@
             }
             _this.dateTag.set(res.year + "-" + res.moth + "-" + res.date, true);
             data[data.length - 1].data.push(docs[x]);
+          }
+          if (res.x == res.max) {
+            //通知日历打标
+            globalBus.$emit('aDate_tag', _this.dateTag);
           }
         });
       },

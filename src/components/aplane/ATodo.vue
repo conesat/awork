@@ -15,7 +15,8 @@
             </div>
             <div class="item" :class="{'on-edit':editIndex==index}" v-for="(item,index) in list" @contextmenu.prevent="showRightMenu($event,index)">
               <span class="item-title" :title="item.title" @click="edit(index)" :style="{'font-size':item.title.length>8?'0.8rem':'1rem'}">{{item.title}}</span>
-              <span class="fa fa-check" title="完成任务"></span>
+              <span v-if="item.status=='进行中'" class="fa fa-check" title="完成任务" @click="finishWork(index,true)"></span>
+              <span v-if="item.status=='已完成'" class="fa fa-repeat" title="重置任务" @click="finishWork(index,false)"></span>
               <span class="fa fa-trash" title="删除任务" @click="remove(index)"></span>
             </div>
           </div>
@@ -28,10 +29,10 @@
               <i class="fa fa-arrow-up"></i>
               置顶
             </div> -->
-            <div @click.stop="finish(editIndex);">
+            <!-- <div @click.stop="finish(editIndex);" >
               <i class="fa fa-check"></i>
               完成
-            </div>
+            </div> -->
             <div @click="nextTodo(editIndex);" title="添加到明天任务清单">
               <i class="fa fa-calendar-plus-o"></i>
               预排
@@ -40,10 +41,10 @@
               <i class="fa fa-flag-o"></i>
               延期
             </div>
-            <div class="delete" @click.stop="remove(editIndex);">
+            <!-- <div class="delete" @click.stop="remove(editIndex);">
               <i class="fa fa-trash"></i>
               删除
-            </div>
+            </div> -->
           </div>
         </div>
       </div>
@@ -160,9 +161,32 @@
     },
     methods: {
       //完成任务
-      finishWork(index) {
+      finishWork(index, finish) {
+        var _this = this;
         var data = this.list[index];
-        this.refreshMini(date)
+        _this.aplaneTodoDb.find({
+          _id: data._id
+        }, function(err, docs) {
+          if (docs.length == 1) {
+            var data = docs[0];
+            if (finish) {
+              data.status = '已完成';
+            } else {
+              data.status = '进行中';
+            }
+            _this.aplaneTodoDb.update({
+              _id: data._id
+            }, data, {}, (err, ret) => {
+              _this.list.splice(index, 1, data)
+              _this.refreshMini(data)
+            });
+          } else {
+            Swal.fire({
+              title: `操作失败`,
+              icon: 'error'
+            })
+          }
+        })
       },
       addWorkText() {
         if (!this.addWorkForm.planeText) {
@@ -242,7 +266,6 @@
               } else if (week == 0) {
                 nextDate = new Date(nextDate.setDate(nextDate.getDate() + 1));
               }
-
               _this.insertWork({
                 year: nextDate.getFullYear(),
                 moth: nextDate.getMonth(),
@@ -322,9 +345,9 @@
             _this.aplaneTodoDb.remove({
               _id: this.list[index]._id
             }, {}, function(err, numRemoved) {
+              _this.refreshMini(_this.list[index])
               _this.list.splice(index, 1);
               globalBus.$emit('aPlane_reload', (date) => {});
-              _this.refreshMini(this.list[index])
             });
           }
         })
@@ -476,7 +499,7 @@
         }
       },
       refreshMini(date) {
-        if(!ipcRenderer){
+        if (!ipcRenderer) {
           return;
         }
         var curTime = new Date();
@@ -506,6 +529,7 @@
             }, (err, docs) => {
               _this.refreshMini(data)
               callBack(true, docs);
+              globalBus.$emit('aPlane_reload', (date) => {});
             });
           } else {
             callBack(false, docs);
@@ -576,13 +600,33 @@
           moth: _this.loadDate.moth,
           date: _this.loadDate.date
         }, function(err, docs) {
-          _this.list = docs;
+          _this.list = docs.sort(function(a, b) {
+            var x = b.status == '进行中' ? 0 : 1;
+            var y = a.status == '进行中' ? 0 : 1;
+            return y - x;
+          })
         });
       }
     },
     mounted() {
+      var _this = this;
       window.addEventListener("click", this.clickOther);
       this.loadTypes();
+      if (ipcRenderer) {
+        //监听窗口变化
+        ipcRenderer.on('main-plane-refresh-call', (event, data) => {
+          var curTime = new Date();
+          if (curTime.getFullYear() == _this.loadDate.year &&
+            curTime.getMonth() == _this.loadDate.moth) {
+            _this.aplaneTodoDb = new nedb({
+              filename: '/data/aplane-todo_' + _this.loadDate.year + '-' + _this.loadDate.moth + '.db',
+              autoload: true
+            });
+            _this.loadTodo(_this.loadDate)
+            globalBus.$emit('aPlane_reload', (date) => {});
+          }
+        });
+      }
     },
     beforeDestroy() { // 实例销毁之前对点击事件进行解绑
       window.removeEventListener('click', this.clickOther);

@@ -17,8 +17,8 @@
           <span>{{item.title}}</span>
           <div class="menu">
             <i class="fa more" :class="{'fa-angle-right':showMoreMenu,'fa-angle-left':!showMoreMenu}" @click="changeMore(index)"></i>
-            <i v-if="showMoreMenu" class="fa fa-close" title="删除"></i>
-            <i class="fa fa-check" title="完成"></i>
+            <i v-if="showMoreMenu" class="fa fa-close" title="删除" @click="remove(index)"></i>
+            <i class="fa fa-check" title="完成" @click="finishWork(index)"></i>
           </div>
         </div>
         <div style="text-align: center;padding: 20px;color: #7f8c8d;" v-if="todoList.length==0">无任务</div>
@@ -114,6 +114,42 @@
       this.loadPlane();
     },
     methods: {
+      remove(index) {
+        var _this = this;
+        if (confirm('确认删除"' + this.todoList[index].title + '"吗?') == true) {
+          // 删除
+          _this.aplaneTodoDb.remove({
+            _id: _this.todoList[index]._id
+          }, {}, function(err, numRemoved) {
+            _this.todoList.splice(index, 1);
+            _this.refreshMain();
+          });
+        }
+      },
+      //完成任务
+      finishWork(index) {
+        var _this = this;
+        var data = this.todoList[index];
+        _this.aplaneTodoDb.find({
+          _id: data._id
+        }, function(err, docs) {
+          if (docs.length == 1) {
+            var data = docs[0];
+            data.status = '已完成';
+            _this.aplaneTodoDb.update({
+              _id: data._id
+            }, data, {}, (err, ret) => {
+              _this.todoList.splice(index, 1);
+              _this.refreshMain();
+            });
+          } else {
+            Swal.fire({
+              title: `操作失败`,
+              icon: 'error'
+            })
+          }
+        })
+      },
       loadPlane() {
         var _this = this;
         var currentDate = new Date();
@@ -193,6 +229,11 @@
         this.$router.push(url).catch(err => {
           err
         })
+      },
+      refreshMain() {
+        if (ipcRenderer) {
+          ipcRenderer.send('main-plane-refresh');
+        }
       },
     }
   }

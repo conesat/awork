@@ -73,7 +73,7 @@
           moth: '',
           date: ''
         },
-        tagMap:undefined,
+        tagMap: undefined,
       }
     },
     created() {
@@ -83,7 +83,7 @@
         return this.getDateList(type);
       });
       globalBus.$on('aDate_tag', (map) => {
-        this.tagMap=map;
+        this.tagMap = map;
         this.doTag();
       });
       globalBus.$on('aDate_getDate', (type) => {
@@ -98,16 +98,18 @@
     methods: {
       //打标
       doTag() {
-        var _this=this;
-        var map=_this.tagMap;
-        if(!map||!_this.date){
+        var _this = this;
+        var map = _this.tagMap;
+        if (!map || !_this.date) {
           return;
         }
         for (var x in _this.date) {
           var date = _this.date[x];
+          date.tag=false;
+          this.$set(_this.date, x, date);
           date.tag = map.get(date.year + "-" + date.moth + "-" + date.date);
-          if(date.tag){
-            this.$set(_this.date,x,date);
+          if (date.tag) {
+            this.$set(_this.date, x, date);
           }
         }
       },
@@ -188,7 +190,6 @@
         var nowDate = currentDate.getDate(); //得到日期
         this.pickerDate = new Date(nowYear, nowMonth, nowDate);
         this.initDate();
-
       },
       initDate() {
         this.chioceWeek = -1;

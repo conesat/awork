@@ -201,4 +201,10 @@ ipcMain.on('mini-plane-refresh', (event, args) => {
     miniWin.webContents.send('mini-plane-refresh-call');
   }
 });
+//刷新任务
+ipcMain.on('main-plane-refresh', (event, args) => {
+  if(mainWindow){
+    mainWindow.webContents.send('main-plane-refresh-call');
+  }
+});
 //+++++++++++++++++++++++悬浮工具 end ++++++++++++++++++++++++++++++++++++++
