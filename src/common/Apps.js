@@ -20,6 +20,14 @@ const apps = [{
   url: '/urlToJson',
   type: 'app',
   name: 'urlToJson'
+}, {
+  title: '加密工具少时诵诗书所是是是',
+  img: './static/img/apps/urlToJson.png',
+  icon: './static/img/apps/urlToJson_icon.png',
+  info: 'rsa/aes/md5加密',
+  url: '/urlToJson',
+  type: 'app',
+  name: 'urlToJson'
 }]
 
 export {

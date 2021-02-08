@@ -51,6 +51,8 @@
 		components: {},
 		data() {
 			return {
+				leftNum:1,
+				rightNum:1,
 				inputTextLeft: "",
 				inputTextRight: "",
 				itemLeft: [{
@@ -110,12 +112,12 @@
 			addItem(type) {
 				if (type == 'left') {
 					this.itemLeft.push({
-						title: '#' + (this.itemLeft.length + 1),
+						title: '#' + (++this.leftNum),
 						active: false
 					})
 				} else if (type == 'right') {
 					this.itemRight.push({
-						title: '#' + (this.itemRight.length + 1),
+						title: '#' + (++this.rightNum),
 						active: false
 					})
 				}
@@ -134,6 +136,9 @@
 				if (type == 'left') {
 					this.itemLeft.splice(index, 1);
 					if (this.itemLeftIndex != index) {
+						if(index<this.itemLeftIndex){
+							this.itemLeftIndex--;
+						}
 						return;
 					}
 					this.itemLeftIndex = index - 1;
@@ -142,6 +147,9 @@
 				} else if (type == 'right') {
 					this.itemRight.splice(index, 1);
 					if (this.itemRightIndex != index) {
+						if(index<this.itemRightIndex){
+							this.itemRightIndex--;
+						}
 						return;
 					}
 					this.itemRightIndex = index - 1;
@@ -211,6 +219,7 @@
 					flex: 1;
 
 					textarea {
+						font-size: 1.2rem;
 						width: 100%;
 						height: 100%;
 						outline: none;
