@@ -362,7 +362,7 @@
 								tag: '延期',
 								type: data.type,
 							}, (err, docs) => {
-								data.status = '进行中'
+								data.status = '进行中 '
 								data.tag = '延期'
 								_this.aplaneTodoDb.update({
 									_id: data._id

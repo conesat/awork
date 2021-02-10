@@ -11,8 +11,8 @@
             <img :src="app.icon" :class="{'active':choiceMenu==app.url||rightMenu.index==index}" :title="app.title" />
           </div>
         </div>
-        <div class="item setting" @click="choiceMenuFun('/setting/theme','setting')">
-          <img src="../assets/icon/menu/a-menu-setting.png" :class="{'active':choiceMenu=='/setting/theme'}" title="设置" />
+        <div class="item setting" @click="choiceMenuFun('/setting/account','setting')">
+          <img src="../assets/icon/menu/a-menu-setting.png" :class="{'active':choiceMenu=='/setting/account'}" title="设置" />
         </div>
       </div>
     </div>

@@ -2,37 +2,75 @@
   "name": "AWork",
   "productName": "AWork",
   "author": "hzl",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "main": "main.js",
+  "updateTime":"2020/02/10",
   "description": "爱工作",
   "scripts": {
     "pack": "electron-builder --dir",
-    "dist": "electron-builder",
-    "postinstall": "electron-builder install-app-deps",
-    "dist": "electron-builder --win --x64"
+    "dist": "electron-builder --win --x64",
+    "postinstall": "electron-builder install-app-deps"
   },
   "build": {
     "electronVersion": "11.0.0",
+    "appId": "awork",
+    "artifactName": "${productName}-${version}-${arch}.${ext}",
+    "nsis": {
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "directories": {
+      "output": "build"
+    },
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "http://127.0.0.1:8848/update/"
+      }
+    ],
+    "dmg": {
+      "contents": [
+        {
+          "x": 410,
+          "y": 150,
+          "type": "link",
+          "path": "/Applications"
+        },
+        {
+          "x": 130,
+          "y": 150,
+          "type": "file"
+        }
+      ]
+    },
+    "mac": {
+      "icon": "build/icons/icon.icns",
+      "artifactName": "${productName}_setup_${version}.${ext}"
+    },
     "win": {
+      "artifactName": "${productName}_setup_${version}.${ext}",
       "icon": "logo.ico",
       "requestedExecutionLevel": "highestAvailable",
-      "target": [{
-        "target": "nsis",
-        "arch": [
-          "x64"
-        ]
-      }]
+      "target": [
+        {
+          "target": "squirrel",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
     },
-    "appId": "awork",
-    "artifactName": "demo-${version}-${arch}.${ext}",
-    "nsis": {
-      "artifactName": "demo-${version}-${arch}.${ext}"
+    "linux": {
+      "icon": "build/icons",
+      "artifactName": "${productName}_setup_${version}.${ext}"
     }
   },
   "dependencies": {
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0",
     "core-js": "^2.4.1",
     "electron-package": "^0.1.0",
-    "electron-updater": "^4.0.0"
+    "electron-updater": "^4.0.0",
+    "update-electron-app": "^2.0.1"
   },
   "devDependencies": {
     "electron-builder": "^20.44.4",

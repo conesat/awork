@@ -46,6 +46,22 @@ export default new Router({
             },
             component: () => import("@/apps/UrlToJson/AppIndex")
           },
+					{
+					  path: 'email',
+					  name: 'email',
+					  meta: {
+					    keepAlive: true, //此组件需要被缓存
+					  },
+					  component: () => import("@/apps/email/AppIndex")
+					},
+					{
+					  path: 'encryption',
+					  name: 'encryption',
+					  meta: {
+					    keepAlive: true, //此组件需要被缓存
+					  },
+					  component: () => import("@/apps/encryption/AppIndex")
+					},
           {
             path: 'setting',
             name: 'setting',

@@ -288,143 +288,146 @@
 </script>
 
 <style lang="scss">
-  .a-date .date {
-    font-size: 0.8rem;
-    //height: 400px;
-    display: inline-block;
-    background-image: url('../../../static/img/date-bg.png');
-    background-size: auto 100%;
-  }
-
-  .a-date .date {
-    padding: 20px;
-  }
-
-  .a-date .date .date-top {
-    display: flex;
-  }
-
-  .a-date .date .date-top {
-    color: #E3F2FD;
-  }
-
-  .a-date .date .date-top span {
-    font-size: 0.8rem;
-    text-align: center;
-    flex: 1;
-  }
-
-  .a-date .date .date-top span span,
-  .a-date .date .date-top i {
-    cursor: pointer;
-  }
-
-  .a-date .date .date-top span span:hover,
-  .a-date .date .date-top i:hover {
-    color: #6DC9FF;
-  }
-
-
-  .line {
-    margin-top: 20px;
-    margin-bottom: 10px;
-    background-color: #BBDEFB;
-    width: 100%;
-    height: 1px;
-  }
-
-  .a-date .date {
-    .bottm-title {
-      position: relative;
-      width: 100%;
-      text-align: center;
-      line-height: 2rem;
-      font-weight: bold;
-      color: #9FA8DA;
-
-      .today {
-        position: absolute;
-        top: 6px;
-        right: 10px;
-        border: 1px #dcdcdc solid;
-        border-radius: 20px;
-        height: 1.2rem;
-        width: 1.2rem;
-        line-height: 1.2rem;
-        color: #dcdcdc;
-        font-size: 0.6rem;
-        cursor: pointer;
-        transition: all 0.2s linear;
-      }
-
-      .today:hover {
-        border: 1px #FFFFFF solid;
-        background: #FFFFFF;
-        color: #6DC9FF;
-      }
-    }
-
-    .date-title {
-      display: flex;
-      color: #E3F2FD;
-    }
-
-    .date-title,
-    .date-day .date-day-line {
-      padding: 4px;
-      font-size: 0.8rem;
-    }
-
-    .date-day .date-day-line {
-      color: #B0BEC5;
-      transition: all 0.3s linear;
-
-      .today {
-        background: #59a4d0;
-        border-radius: 50%;
-        color: #FFFFFF;
-      }
-    }
-
-    .date-day .date-day-line:hover,
-    .date-day .active-week {
-      background: rgba(0, 0, 0, 0.1);
-      border-radius: 2rem;
-    }
-
-    .date-day .date-day-line .now {
-      color: #B3E5FC;
-    }
-
-    .date-day .date-day-line .tag {
-      width: 4px;
-      height: 4px;
-      border-radius: 4px;
-      background-color: #8bffff;
-      position: relative;
-      left: 1.5rem;
-      bottom: 1.7rem;
-    }
-  }
-
-  .a-date .date .date-title span,
-  .a-date .date .date-day .date-day-line span {
-    text-align: center;
-    height: 2rem;
-    width: 2rem;
-    line-height: 2rem;
-    display: inline-block;
-  }
-
-  .a-date .date .date-day .date-day-line span {
-    cursor: pointer;
-    transition: all 0.3s linear;
-  }
-
-  .a-date .date .date-day .date-day-line span:hover,
-  .a-date .date .date-day .date-day-line .active {
-    background: #6DC9FF;
-    border-radius: 50%;
-    color: #FFFFFF;
-  }
+	.a-date{
+		.date {
+		  font-size: 0.8rem;
+		  //height: 400px;
+		  display: inline-block;
+		  background-image: url('../../../static/img/date-bg.png');
+		  background-size: auto 100%;
+		}
+		
+		.date {
+		  padding: 20px;
+		}
+		
+		.date .date-top {
+		  display: flex;
+		}
+		
+		.date .date-top {
+		  color: #E3F2FD;
+		}
+		
+		.date .date-top span {
+		  font-size: 0.8rem;
+		  text-align: center;
+		  flex: 1;
+		}
+		
+		.date .date-top span span,
+		.date .date-top i {
+		  cursor: pointer;
+		}
+		
+		.date .date-top span span:hover,
+		.date .date-top i:hover {
+		  color: #6DC9FF;
+		}
+		
+		
+		.line {
+		  margin-top: 20px;
+		  margin-bottom: 10px;
+		  background-color: #BBDEFB;
+		  width: 100%;
+		  height: 1px;
+		}
+		
+		.date {
+		  .bottm-title {
+		    position: relative;
+		    width: 100%;
+		    text-align: center;
+		    line-height: 2rem;
+		    font-weight: bold;
+		    color: #9FA8DA;
+		
+		    .today {
+		      position: absolute;
+		      top: 6px;
+		      right: 10px;
+		      border: 1px #dcdcdc solid;
+		      border-radius: 20px;
+		      height: 1.2rem;
+		      width: 1.2rem;
+		      line-height: 1.2rem;
+		      color: #dcdcdc;
+		      font-size: 0.6rem;
+		      cursor: pointer;
+		      transition: all 0.2s linear;
+		    }
+		
+		    .today:hover {
+		      border: 1px #FFFFFF solid;
+		      background: #FFFFFF;
+		      color: #6DC9FF;
+		    }
+		  }
+		
+		  .date-title {
+		    display: flex;
+		    color: #E3F2FD;
+		  }
+		
+		  .date-title,
+		  .date-day .date-day-line {
+		    padding: 4px;
+		    font-size: 0.8rem;
+		  }
+		
+		  .date-day .date-day-line {
+		    color: #B0BEC5;
+		    transition: all 0.3s linear;
+		
+		    .today {
+		      background: #59a4d0;
+		      border-radius: 50%;
+		      color: #FFFFFF;
+		    }
+		  }
+		
+		  .date-day .date-day-line:hover,
+		  .date-day .active-week {
+		    background: rgba(0, 0, 0, 0.1);
+		    border-radius: 2rem;
+		  }
+		
+		  .date-day .date-day-line .now {
+		    color: #B3E5FC;
+		  }
+		
+		  .date-day .date-day-line .tag {
+		    width: 4px;
+		    height: 4px;
+		    border-radius: 4px;
+		    background-color: #8bffff;
+		    position: relative;
+		    left: 1.5rem;
+		    bottom: 1.7rem;
+		  }
+		}
+		
+		.date .date-title span,
+		.date .date-day .date-day-line span {
+		  text-align: center;
+		  height: 2rem;
+		  width: 2rem;
+		  line-height: 2rem;
+		  display: inline-block;
+		}
+		
+		.date .date-day .date-day-line span {
+		  cursor: pointer;
+		  transition: all 0.3s linear;
+		}
+		
+		.date .date-day .date-day-line span:hover,
+		.date .date-day .date-day-line .active {
+		  background: #6DC9FF;
+		  border-radius: 50%;
+		  color: #FFFFFF;
+		}
+	}
+  
 </style>

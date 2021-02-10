@@ -4,12 +4,19 @@ const {
   Menu,
   ipcMain,
   ipcRenderer,
+  Notification,
   screen
 } = require('electron'); //引入electron
-
+var packageInfo = require("./package.json");
+const {
+  autoUpdater
+} = require('electron-updater')
+let uploadUrl = 'http://127.0.0.1:8848/update/';
 let mainWindow;
 
 let miniWin;
+
+let loopTime; //
 
 let windowConfig = {
   width: 1000,
@@ -22,6 +29,7 @@ let windowConfig = {
   }
 }; //窗口配置程序运行窗口的大小
 
+
 function createWindow() {
   Menu.setApplicationMenu(null);
   mainWindow = new BrowserWindow(windowConfig); //创建一个窗口
@@ -31,9 +39,6 @@ function createWindow() {
     //回收BrowserWindow对象
     mainWindow = null;
   });
-  mainWindow.on('resize', () => {
-    // mainWindow.reload();
-  })
   //监听窗口变化
   mainWindow.on('resize', () => {
     if (!mainWindow.isMaximized()) {
@@ -42,6 +47,7 @@ function createWindow() {
       mainWindow.webContents.send('restoreMaximize', 'maximize');
     }
   })
+  updateHandle();
 }
 app.on('ready', createWindow);
 
@@ -72,6 +78,17 @@ ipcMain.on('window-min', () => {
   mainWindow.minimize();
 });
 
+ipcMain.on('show-notification', (event, args) => {
+  if (Notification.isSupported()) {
+    console.log('通知')
+    var notification = new Notification({
+      title: args.title,
+      body: args.body
+    })
+    notification.show()
+  }
+});
+
 //最大化
 ipcMain.on('window-max', () => {
   if (mainWindow.isMaximized()) {
@@ -84,7 +101,9 @@ ipcMain.on('window-max', () => {
     mainWindow.webContents.send('restoreMaximize', 'maximize');
   }
 });
-
+ipcMain.on('get-app-info', () => {
+  mainWindow.webContents.send('get-app-info-back', packageInfo);
+});
 //关闭
 ipcMain.on('window-close', () => {
   mainWindow.close();
@@ -197,14 +216,78 @@ ipcMain.on('mini-set-top', (event, args) => {
 
 //刷新悬浮任务
 ipcMain.on('mini-plane-refresh', (event, args) => {
-  if(miniWin){
+  if (miniWin) {
     miniWin.webContents.send('mini-plane-refresh-call');
   }
 });
 //刷新任务
 ipcMain.on('main-plane-refresh', (event, args) => {
-  if(mainWindow){
+  if (mainWindow) {
     mainWindow.webContents.send('main-plane-refresh-call');
   }
 });
 //+++++++++++++++++++++++悬浮工具 end ++++++++++++++++++++++++++++++++++++++
+
+
+//+++++++++++++++++++++++更新 start ++++++++++++++++++++++++++++++
+
+// 检测更新，在你想要检查更新的时候执行，renderer事件触发后的操作自行编写
+function updateHandle() {
+  let message = {
+    error: 'error',
+    checking: 'checking……',
+    updateAva: 'updateAva……',
+    updateNotAva: 'updateNotAva',
+  };
+  const os = require('os');
+
+  autoUpdater.setFeedURL(uploadUrl);
+
+  console.log(11)
+  console.log(autoUpdater)
+  console.log(uploadUrl)
+  console.log(11)
+  autoUpdater.on('error', function(error) {
+    sendUpdateMessage(message.error)
+  });
+  autoUpdater.on('checking-for-update', function() {
+    sendUpdateMessage(message.checking)
+  });
+  autoUpdater.on('update-available', function(info) {
+    sendUpdateMessage(message.updateAva)
+  });
+  autoUpdater.on('update-not-available', function(info) {
+    sendUpdateMessage(message.updateNotAva)
+  });
+
+  // 更新下载进度事件
+  autoUpdater.on('download-progress', function(progressObj) {
+    console.log(progressObj)
+    mainWindow.webContents.send('downloadProgress', progressObj)
+  })
+  autoUpdater.on('update-downloaded', function(event, releaseNotes, releaseName, releaseDate, updateUrl, quitAndUpdate) {
+
+    ipcMain.on('isUpdateNow', (e, arg) => {
+      console.log(arguments);
+      console.log("开始更新");
+      //some code here to handle event
+      autoUpdater.quitAndInstall();
+    });
+
+    mainWindow.webContents.send('isUpdateNow')
+  });
+
+  autoUpdater.checkForUpdates()
+  ipcMain.on("checkForUpdate", () => {
+    //执行自动更新检查
+    autoUpdater.checkForUpdates();
+  })
+
+}
+
+// 通过main进程发送事件给renderer进程，提示更新信息
+function sendUpdateMessage(text) {
+  console.log(package.version)
+  console.log(text)
+  mainWindow.webContents.send('message', text)
+}

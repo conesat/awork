@@ -12,12 +12,8 @@
 					<i class="fa fa-file-text-o" aria-hidden="true" title="日报"></i>
 					<div></div>
 				</span>
-				<span class="item" @click="showWeekReportFun('')">
+				<span class="item" @click="showWeekReportFun('')" v-if="showType=='week'">
 					<i class="fa fa-file-word-o" aria-hidden="true" title="周报"></i>
-					<div></div>
-				</span>
-				<span class="item">
-					<i class="fa fa-envelope-o" aria-hidden="true" title="发送周报"></i>
 					<div></div>
 				</span>
 				<span class="item">
@@ -56,7 +52,7 @@
 			<div class="modal-report-div">
 				<div class="modal-report-top">
 					<span class="copy-text" :style="{'opacity':showDayReportTxtOpacity}">已复制</span>
-					<i class="fa fa-copy" @click="CopyDayReport"></i>
+					<i class="fa fa-copy" @click="copyDayReport"></i>
 					<i class="fa fa-close" @click="closeDayReportFun"></i>
 				</div>
 				<textarea id="dayReport">
@@ -66,11 +62,11 @@
 		</div>
 
 		<div class="modal-report" v-show="showWeekReport" :style="{'opacity':showWeekReportOpacity}">
-			<div class="modal-report-div">
+			<div class="modal-report-div" style="height: calc(100% - 200px);width: 600px;">
 				<div class="modal-report-top">
 					<span class="copy-text" :style="{'opacity':showWeekReportTxtOpacity}">已复制</span>
-					<i class="fa fa-copy"></i>
-					<i class="fa fa-close"></i>
+					<i class="fa fa-copy" @click="copyWeekReport"></i>
+					<i class="fa fa-close" @click="closeWeekReportFun"></i>
 				</div>
 				<textarea id="weekReport">
 
@@ -113,8 +109,8 @@
 				dates: [],
 				works: [],
 				typeListMap: new Map(),
+				planeMap: new Map(), //按日期分类的全部任务
 				types: [],
-				palneMap: new Map(),
 				typeDate: {},
 				//table的移动缩放
 				positionX: 0,
@@ -152,7 +148,17 @@
 			getTdLeft(left, colspan) {
 				return 'calc(' + left * 100 + "%" + ' + ' + left + 'px)';
 			},
-			CopyDayReport() {
+			copyWeekReport() {
+				var _this = this;
+				let url = document.getElementById("weekReport");
+				url.select(); // 选择对象
+				document.execCommand("Copy");
+				_this.showWeekReportTxtOpacity = 1;
+				setTimeout(function() {
+					_this.showWeekReportTxtOpacity = 0;
+				}, 1500)
+			},
+			copyDayReport() {
 				var _this = this;
 				let url = document.getElementById("dayReport");
 				url.select(); // 选择对象
@@ -161,6 +167,13 @@
 				setTimeout(function() {
 					_this.showDayReportTxtOpacity = 0;
 				}, 1500)
+			},
+			closeWeekReportFun() {
+				var _this = this;
+				_this.showWeekReportOpacity = 0;
+				setTimeout(function() {
+					_this.showWeekReport = false;
+				}, 200)
 			},
 			closeDayReportFun() {
 				var _this = this;
@@ -222,51 +235,132 @@
 			//日报
 			showWeekReportFun(date) {
 				var _this = this;
-				if (date) {
-					var dayReport = document.getElementById("weekReport")
-					if (!_this.showDayReport || !dayReport) return;
-					// 查询所有结果集
-					_this.aplaneTodoDb.find({
-						year: date.year,
-						moth: date.moth,
-						date: date.date
-					}, function(err, docs) {
-						var timeNow = new Date();
-						var allTxt = timeNow.getHours() > 12 ? "今日完成\n" : "今日计划\n";
-						var map = new Map();
-						for (var x in docs) {
-							var type = docs[x].type ? docs[x].type : '未分类'
-							var txtArr = map.get(type);
-							if (!txtArr) {
-								txtArr = [];
-								map.set(type, txtArr)
-							}
-							var txt = (txtArr.length + 1) + '. ' + docs[x].title;
-							if (docs[x].status && docs[x].status != 0) {
-								txt += "（" + docs[x].status + "）\n";
-							} else {
-								txt += "（进行中）\n";
-							}
-							if (docs[x].detail) {
-								txt += '   ' + docs[x].detail + "\n";
-							}
-							txtArr.push(txt)
+				var timeMap = new Map();
+				var all = 0;
+				var loopDates;
+				loopDates = _this.dates.slice(1, 6);
+				var allTxt = "本周工作（" + (loopDates[0].moth + 1) + "." + loopDates[0].date + "~" + (loopDates[4].moth + 1) +
+					"." + loopDates[4].date + "）\n";
+				for (var x in loopDates) {
+					var w;
+					switch (x) {
+						case '0':
+							w = "一";
+							break;
+						case '1':
+							w = "二";
+							break;
+						case '2':
+							w = "三";
+							break;
+						case '3':
+							w = "四";
+							break;
+						case '4':
+							w = "五";
+							break;
+					}
+					allTxt += "周" + w + "（" + (loopDates[x].moth + 1) + "." + loopDates[x].date + "）\n";
+					var date = loopDates[x].year + '-' + loopDates[x].moth + '-' + loopDates[x].date;
+					var data = _this.planeMap.get(date);
+					var map = new Map();
+					for (var i in data) {
+						var listD = map.get(data[i].title);
+						if (!listD) {
+							listD = new Array();
+							map.set(data[i].type, listD);
 						}
-						map.forEach(function(value, key) {
-							allTxt += key + ":\n";
-							for (var x in value) {
-								allTxt += value[x];
-							}
-							allTxt += "\n";
-						})
-						document.getElementById("dayReport").value = allTxt.trim();
+						listD.push(data[i])
+					}
+					map.forEach(function(value, key) {
+						allTxt += (key ? " " + key + ":\n" : ' 其他:\n');
+						all += value.length;
+						if (!timeMap.get(key)) {
+							timeMap.set(key, 0)
+						}
+						timeMap.set(key, timeMap.get(key) + 1)
+						for (var j in value) {
+							allTxt += " " + (parseInt(j) + 1) + ". " + value[j].title + "（" + (value[j].status == '延期' ? '进行中' : value[j].status) +
+								"）\n";
+							allTxt += "    " + value[j].detail + "\n";
+						}
 					});
-				} else {
-					_this.showDayReport = true;
-					globalBus.$emit('aDate_getDate');
+					allTxt += "\n";
+				}
+				allTxt += "\n下周计划:\n";
+				this.loadNextWeekPlane(function(text) {
+					allTxt += text;
+					allTxt += "当前工作时间占比:\n";
+					timeMap.forEach(function(value, key) {
+						var k = (key ? " " + key  : ' 其他');
+						var t='';
+						for(var l=0;l<3-k.length/4;l++){
+							t+='\t';
+						}
+						allTxt += k + t + Math.round(value / all * 100) + "%\n";
+					})
+					allTxt += "\n\n";
+					allTxt += "存在问题:\n无\n";
+					allTxt += "存在风险:\n无\n";
+					allTxt += "需要支持:\n无\n";
+					document.getElementById("weekReport").value = allTxt.trim();
+					_this.showWeekReport = true;
 					setTimeout(function() {
-						_this.showDayReportOpacity = 1;
+						_this.showWeekReportOpacity = 1;
 					}, 50)
+				});
+
+			},
+			//加载下周计划
+			loadNextWeekPlane(callBack) {
+				var _this = this;
+				var map = new Map();
+				var titleSet = new Set();
+				var db = _this.aplaneTodoDb;
+				var choiceDate = this.dates[6];
+				var newDate = new Date(choiceDate.year, choiceDate.moth, choiceDate.date);
+				var endDate = newDate.getDate();
+				var moth = choiceDate.moth;
+				var text = "";
+				for (var x = 1; x <= 6; x++) {
+					(function(xx) {
+						newDate.setDate(newDate.getDate() + 1);
+						if (newDate.getMonth() != moth) {
+							moth = newDate.getMonth();
+							db = new nedb({
+								filename: '/data/aplane-todo_' + newDate.getFullYear() + '-' + newDate.getMonth() + '.db',
+								autoload: true
+							});
+						}
+						db.find({
+							year: newDate.getFullYear(),
+							moth: newDate.getMonth(),
+							date: newDate.getDate()
+						}, function(err, docs) {
+							for (var x in docs) {
+								var data = map.get(docs[x].type);
+								if (!data) {
+									data = new Array();
+									map.set(docs[x].type, data);
+								}
+								if (!titleSet.has(docs[x].title)) {
+									titleSet.add(docs[x].title)
+									data.push(docs[x]);
+								}
+							}
+
+							if (xx == 6) {
+								map.forEach(function(value, key) {
+									text += (key ? " " + key + ":\n" : ' 其他:\n');
+									for (var i in value) {
+										text += ' ' + (parseInt(i) + 1) + ". " + value[i].title + "\n";
+									}
+								})
+								text += '\n\n';
+								callBack(text);
+							}
+						})
+					})(x)
 				}
 			},
 			getFontSize(txt) {
@@ -315,7 +409,7 @@
 				_this.onload = true;
 				_this.dates.splice(0, _this.dates.length)
 				_this.works.splice(0, _this.works.length);
-
+				_this.planeMap.clear();
 				_this.typeListMap.forEach(function(value, key) {
 					value.splice(0, value.length)
 				});
@@ -388,16 +482,6 @@
 					});
 				});
 			},
-			getPlaneByDatetype(date, type) {
-				var data = _this.palneMap.get(date.year + '-' + date.moth + '-' + date.date + ':' + type);
-				if (!data) {
-					data = {
-						colspan: 1,
-						data: []
-					}
-				}
-				return data;
-			},
 			//res 日期 找到这个日期下所有计划
 			findAndAddPlane(res) {
 				var _this = this;
@@ -407,6 +491,7 @@
 					moth: res.moth,
 					date: res.date
 				}, function(err, docs) {
+					_this.planeMap.set(res.year + '-' + res.moth + '-' + res.date, docs);
 					//先添加一个空计划占行
 					_this.typeListMap.forEach(function(value, key) {
 						value.push({

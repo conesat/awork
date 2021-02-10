@@ -134,6 +134,9 @@
 			},
 			closeItem(type, index) {
 				if (type == 'left') {
+					if(this.itemLeft.length==1){
+						return;
+					}
 					this.itemLeft.splice(index, 1);
 					if (this.itemLeftIndex != index) {
 						if(index<this.itemLeftIndex){
@@ -145,6 +148,9 @@
 					this.itemLeftIndex = this.itemLeftIndex == -1 ? 0 : this.itemLeftIndex;
 					this.itemLeft[this.itemLeftIndex].active = true;
 				} else if (type == 'right') {
+					if(this.itemRight.length==1){
+						return;
+					}
 					this.itemRight.splice(index, 1);
 					if (this.itemRightIndex != index) {
 						if(index<this.itemRightIndex){

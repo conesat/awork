@@ -2,13 +2,13 @@
   <div class="setting-main" :style="{'background':this.$store.state.theme.bfColor}">
     <div style="margin: 0 auto;display: flex;">
       <div class="left">
+				<div class="item " :class="{'active':choiceItem=='account'}" @click="choiceMenuFun('account')">
+				  <img src="../assets/icon/setting/account.png" />
+				  <span>账号</span>
+				</div>
         <div class="item" :class="{'active':choiceItem=='theme'}" @click="choiceMenuFun('theme')">
           <img src="../assets/icon/setting/theme.png" />
           <span>主题</span>
-        </div>
-        <div class="item " :class="{'active':choiceItem=='account'}" @click="choiceMenuFun('account')">
-          <img src="../assets/icon/setting/account.png" />
-          <span>账号</span>
         </div>
         <div class="item" :class="{'active':choiceItem=='about'}" @click="choiceMenuFun('about')">
           <img src="../assets/icon/setting/about.png" />
@@ -28,7 +28,7 @@
     name: 'Setting',
     data() {
       return {
-        choiceItem: 'theme',
+        choiceItem: 'account',
       }
     },
     methods: {

@@ -14,8 +14,10 @@
   "dependencies": {
     "@sweetalert2/theme-material-ui": "^4.0.1",
     "@sweetalert2/theme-minimal": "^4.0.1",
+    "js-md5": "^0.7.3",
     "nedb": "^1.8.0",
     "node-sass": "^4.14.1",
+    "node-schedule": "^2.0.0",
     "smalltalk": "^4.0.7",
     "sweetalert2": "^10.12.7",
     "vcolorpicker": "^1.0.3",
@@ -38,6 +40,7 @@
     "babel-preset-stage-2": "^6.22.0",
     "chalk": "^2.0.1",
     "copy-webpack-plugin": "^4.0.1",
+    "crypto-js": "^4.0.0",
     "css-loader": "^0.28.0",
     "electron": "^11.2.0",
     "eslint": "^4.15.0",

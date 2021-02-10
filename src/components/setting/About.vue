@@ -4,44 +4,60 @@
     <div class="item">
       <label>应用：</label>
       <div class="input">
-        爱工作（a-work）
+        {{appinfo.name}}
       </div>
     </div>
     <div class="item">
       <label>版本：</label>
       <div class="input">
-        1.0.0
+        {{appinfo.version}}
       </div>
     </div>
     <div class="item">
       <label>更新日期：</label>
       <div class="input">
-        2021
+        {{appinfo.updateTime}}
       </div>
     </div>
     <div class="item">
       <label>作者：</label>
       <div class="input">
-        hzl
+        {{appinfo.author}}
       </div>
     </div>
   </div>
 </template>
 
 <script>
+  var ipcRenderer;
+  if (window.require) {
+    ipcRenderer = window.require('electron').ipcRenderer;
+  }
   export default {
     components: {},
     name: 'Theme',
     data() {
       return {
-        bgColor: '#9d9d9d',
-        bfColor: '#9d9d9d',
-        normalFontColor: '#9d9d9d',
-        activeFontColor: '#9d9d9d',
+        appinfo: {
+          name: '爱工作',
+          version: '1.0.0',
+          description: '',
+          author: 'hzl',
+          updateTime: ''
+        }
       }
     },
     methods: {
-
+      
+    },
+    mounted() {
+      var _this = this;
+      if (ipcRenderer) {
+        ipcRenderer.send("get-app-info");
+        ipcRenderer.on("get-app-info-back", (event, data) => {
+          _this.appinfo = data;
+        });
+      }
     }
   }
 </script>

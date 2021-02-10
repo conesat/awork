@@ -6,14 +6,14 @@
 		</div>
 		<div class="center">
 			<div class="change-type">
-				<span class="text" :class="{'active':appType=='card'}" @click="appType='card'">卡片</span>
+				<span class="text" :class="{'active':appType=='card'}" @click="setApptype('card')">卡片</span>
 				<span class="text-line">|</span>
-				<span class="text" :class="{'active':appType=='mini'}" @click="appType='mini'">图标</span>
+				<span class="text" :class="{'active':appType=='mini'}" @click="setApptype('mini')">图标</span>
 			</div>
 			<div class="apps" v-if="appType=='card'">
 				<div class="item" v-for="(app,index) in apps" @click="openApp(app)">
 					<div class="card">
-						<div class="bg" :style="{'background-image': 'url('+app.img+')'}"></div>
+						<div class="bg" :style="{'background-image': 'url('+getImgUrl(app.img)+')'}"></div>
 						<div class="bottom-info">
 							<span class="title">
 								{{app.title}}
@@ -59,6 +59,16 @@
 			}
 		},
 		methods: {
+			setApptype(type){
+				localStorage.setItem("appType",type);
+				this.appType=type;
+			},
+			getImgUrl(url){
+				if(url && url.trim()!=''){
+					return url;
+				}
+				return './static/img/apps/empty_bg.png';
+			},
 			openApp(app) {
 				globalBus.$emit('openApp', app);
 			},
@@ -69,6 +79,11 @@
 		},
 		mounted() {
 			this.loadApps();
+			this.appType=localStorage.getItem("appType");
+			if(!this.appType){
+				localStorage.setItem("appType","mini");
+				this.appType="mini";
+			}
 		}
 	}
 </script>

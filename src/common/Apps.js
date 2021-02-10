@@ -13,6 +13,15 @@ const apps = [{
   type: 'app',
   name: 'aReport'
 }, {
+  title: '邮件',
+  img: './static/img/apps/email.jpg',
+  icon: './static/img/apps/email_icon.png',
+  info: '周报邮箱',
+  url: '/email',
+  type: 'app',
+  name: 'encryption',
+	status:'未上线'
+}, {
   title: 'Url转Json',
   img: './static/img/apps/urlToJson.png',
   icon: './static/img/apps/urlToJson_icon.png',
@@ -21,13 +30,12 @@ const apps = [{
   type: 'app',
   name: 'urlToJson'
 }, {
-  title: '加密工具少时诵诗书所是是是',
-  img: './static/img/apps/urlToJson.png',
-  icon: './static/img/apps/urlToJson_icon.png',
+  title: '加密工具',
+  icon: './static/img/apps/encryption_icon.png',
   info: 'rsa/aes/md5加密',
-  url: '/urlToJson',
+  url: '/encryption',
   type: 'app',
-  name: 'urlToJson'
+  name: 'encryption'
 }]
 
 export {
